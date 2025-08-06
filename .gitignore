@@ -1,0 +1,385 @@
+# =============================================================================
+# .gitignore for Einkaufsliste Shopping List Application
+# =============================================================================
+
+# =============================================================================
+# Node.js Dependencies / Node.js Abhängigkeiten
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# =============================================================================
+# Package Manager Lock Files / Paketmanager-Sperrdateien
+# =============================================================================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# =============================================================================
+# Environment Variables / Umgebungsvariablen
+# =============================================================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# =============================================================================
+# Database Files / Datenbankdateien
+# =============================================================================
+*.sqlite
+*.sqlite3
+*.db
+backend/db.sqlite
+backend/database.sqlite
+backend/*.db
+
+# =============================================================================
+# Authentication & Security / Authentifizierung & Sicherheit
+# =============================================================================
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+secrets/
+auth/
+.secrets
+jwt-secret*
+private-key*
+
+# =============================================================================
+# Logs / Protokolldateien
+# =============================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# =============================================================================
+# Cache Directories / Cache-Verzeichnisse
+# =============================================================================
+.npm
+.yarn
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+
+# =============================================================================
+# React Build Output / React Build-Ausgabe
+# =============================================================================
+build/
+dist/
+out/
+*.tgz
+*.tar.gz
+
+# =============================================================================
+# React Development / React-Entwicklung
+# =============================================================================
+.eslintcache
+.stylelintcache
+
+# =============================================================================
+# VS Code Settings / VS Code-Einstellungen
+# =============================================================================
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# =============================================================================
+# IDE Files / IDE-Dateien
+# =============================================================================
+.idea/
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# OS Generated Files / Betriebssystem-Dateien
+# =============================================================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# Temporary Files / Temporäre Dateien
+# =============================================================================
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.backup
+
+# =============================================================================
+# Coverage Reports / Coverage-Berichte
+# =============================================================================
+coverage/
+*.lcov
+.nyc_output
+lib-cov
+
+# =============================================================================
+# Runtime Data / Laufzeitdaten
+# =============================================================================
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# =============================================================================
+# Optional npm Cache Directory / Optionales npm-Cache-Verzeichnis
+# =============================================================================
+.npm
+
+# =============================================================================
+# Optional eslint Cache / Optionaler eslint-Cache
+# =============================================================================
+.eslintcache
+
+# =============================================================================
+# Microbundle Cache / Microbundle-Cache
+# =============================================================================
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# =============================================================================
+# Optional REPL History / Optionale REPL-Historie
+# =============================================================================
+.node_repl_history
+
+# =============================================================================
+# Output of 'npm pack' / Ausgabe von 'npm pack'
+# =============================================================================
+*.tgz
+
+# =============================================================================
+# Yarn Integrity File / Yarn-Integritätsdatei
+# =============================================================================
+.yarn-integrity
+
+# =============================================================================
+# dotenv Environment Variables File / dotenv-Umgebungsvariablen-Datei
+# =============================================================================
+.env
+.env.test
+.env.production
+
+# =============================================================================
+# Parcel-bundler Cache / Parcel-Bundler-Cache
+# =============================================================================
+.cache
+.parcel-cache
+
+# =============================================================================
+# Next.js Build Output / Next.js Build-Ausgabe
+# =============================================================================
+.next
+
+# =============================================================================
+# Nuxt.js Build / Nuxt.js Build
+# =============================================================================
+.nuxt
+dist
+
+# =============================================================================
+# Gatsby Files / Gatsby-Dateien
+# =============================================================================
+.cache/
+public
+
+# =============================================================================
+# Vuepress Build Output / Vuepress Build-Ausgabe
+# =============================================================================
+.vuepress/dist
+
+# =============================================================================
+# Serverless Directories / Serverless-Verzeichnisse
+# =============================================================================
+.serverless/
+
+# =============================================================================
+# FuseBox Cache / FuseBox-Cache
+# =============================================================================
+.fusebox/
+
+# =============================================================================
+# DynamoDB Local Files / DynamoDB-Lokale-Dateien
+# =============================================================================
+.dynamodb/
+
+# =============================================================================
+# TernJS Port File / TernJS-Port-Datei
+# =============================================================================
+.tern-port
+
+# =============================================================================
+# Application Specific / Anwendungsspezifisch
+# =============================================================================
+
+# User Uploads / Benutzer-Uploads
+uploads/
+user-files/
+avatars/
+
+# Session Files / Session-Dateien
+sessions/
+*.session
+
+# Email Templates Compiled / Kompilierte E-Mail-Vorlagen
+email-templates/compiled/
+
+# Reports / Berichte
+reports/
+analytics/
+
+# Backup Files / Backup-Dateien
+backups/
+*.backup
+*.bak
+
+# Configuration Files with Sensitive Data / Konfigurationsdateien mit sensiblen Daten
+config/local.js
+config/production.js
+config/database.js
+
+# SSL Certificates / SSL-Zertifikate
+ssl/
+certificates/
+
+# =============================================================================
+# Development Tools / Entwicklungstools
+# =============================================================================
+
+# Storybook Build Outputs / Storybook Build-Ausgaben
+storybook-static/
+
+# Cypress Screenshots and Videos / Cypress Screenshots und Videos
+cypress/screenshots/
+cypress/videos/
+
+# Jest Coverage / Jest-Coverage
+coverage/
+
+# =============================================================================
+# Deployment / Bereitstellung
+# =============================================================================
+
+# Docker
+.dockerignore
+
+# Heroku
+.heroku/
+
+# Vercel
+.vercel
+
+# Netlify
+.netlify/
+
+# =============================================================================
+# Monitoring & Analytics / Überwachung & Analytik
+# =============================================================================
+
+# Error Tracking / Fehler-Tracking
+.sentry/
+
+# Performance Monitoring / Leistungsüberwachung
+.lighthouse/
+
+# =============================================================================
+# Custom Project Files / Benutzerdefinierte Projektdateien
+# =============================================================================
+
+# Development Notes / Entwicklungsnotizen
+notes.md
+TODO.md
+CHANGELOG.local.md
+
+# Local Scripts / Lokale Skripte
+scripts/local/
+
+# Test Data / Testdaten
+test-data/
+sample-data/
+
+# Documentation Builds / Dokumentations-Builds
+docs/build/
+docs/dist/
+
+# =============================================================================
+# WICHTIGE HINWEISE / IMPORTANT NOTES
+# =============================================================================
+
+# NIEMALS COMMITTEN / NEVER COMMIT:
+# - Passwörter oder API-Schlüssel / Passwords or API keys
+# - Datenbankdateien mit echten Daten / Database files with real data
+# - Persönliche Konfigurationsdateien / Personal configuration files
+# - Produktions-Umgebungsvariablen / Production environment variables
+# - SSL-Zertifikate oder private Schlüssel / SSL certificates or private keys
+# - Benutzer-Uploads oder sensible Dateien / User uploads or sensitive files
+
+# =============================================================================
+# End of .gitignore
+# =============================================================================

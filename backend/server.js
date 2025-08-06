@@ -1,0 +1,1284 @@
+﻿import express from 'express';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+import cors from 'cors';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+async function initDb() {
+  const db = await open({
+    filename: './db.sqlite',
+    driver: sqlite3.Database
+  });
+  
+  // Users table with unique UUID
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT UNIQUE NOT NULL,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  
+  // Shopping lists table
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS shopping_lists (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      icon TEXT DEFAULT '🛒',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    );
+  `);
+  
+  // Articles table (erweitert)
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS articles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      icon TEXT,
+      comment TEXT DEFAULT '',
+      user_id INTEGER,
+      list_id INTEGER,
+      is_bought BOOLEAN DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      FOREIGN KEY (list_id) REFERENCES shopping_lists (id) ON DELETE CASCADE
+    );
+  `);
+  
+  // Favorites table (separate)
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS favorites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      icon TEXT,
+      comment TEXT DEFAULT '',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      UNIQUE(user_id, name, category)
+    );
+  `);
+  
+  // Standard articles table
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS standard_articles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      icon TEXT,
+      is_global BOOLEAN DEFAULT 0,
+      user_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      UNIQUE(name, category, user_id)
+    );
+  `);
+  
+  // Categories table
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      icon TEXT NOT NULL,
+      is_global BOOLEAN DEFAULT 0,
+      user_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      UNIQUE(name, user_id)
+    );
+  `);
+  
+    // Broadcasts table
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS broadcasts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'info',
+      requires_confirmation BOOLEAN DEFAULT 0,
+      is_permanent BOOLEAN DEFAULT 0,
+      is_active BOOLEAN DEFAULT 1,
+      expires_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  
+  // Broadcast confirmations table
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS broadcast_confirmations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      broadcast_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      confirmed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (broadcast_id) REFERENCES broadcasts (id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      UNIQUE(broadcast_id, user_id)
+    );
+  `);
+
+  // Database log table for admin monitoring
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS db_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      method TEXT NOT NULL,
+      query TEXT NOT NULL,
+      params TEXT,
+      response_time INTEGER,
+      error TEXT,
+      user_id INTEGER,
+      ip_address TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+    );
+  `);
+  
+  // Check if default data already exists to prevent duplicates
+  const existingArticles = await db.get('SELECT COUNT(*) as count FROM standard_articles WHERE is_global = 1');
+  const existingCategories = await db.get('SELECT COUNT(*) as count FROM categories WHERE is_global = 1');
+  
+  // Insert default global standard articles only if none exist
+  if (existingArticles.count === 0) {
+    await db.exec(`
+      INSERT INTO standard_articles (name, category, icon, is_global) VALUES
+      ('Milch', 'Milchprodukte', '🥛', 1),
+      ('Brot', 'Getreideprodukte', '🍞', 1),
+      ('Butter', 'Milchprodukte', '🧈', 1),
+      ('Eier', 'Milchprodukte', '🥚', 1),
+      ('Bananen', 'Obst', '🍌', 1),
+      ('Äpfel', 'Obst', '🍎', 1),
+      ('Tomaten', 'Gemüse', '🍅', 1),
+      ('Kartoffeln', 'Gemüse', '🥔', 1),
+      ('Reis', 'Getreideprodukte', '🍚', 1),
+      ('Nudeln', 'Getreideprodukte', '🍝', 1),
+      ('Käse', 'Milchprodukte', '🧀', 1),
+      ('Hähnchen', 'Fleisch', '🍗', 1),
+      ('Joghurt', 'Milchprodukte', '🥛', 1),
+      ('Zwiebeln', 'Gemüse', '🧅', 1),
+      ('Knoblauch', 'Gemüse', '🧄', 1),
+      ('Olivenöl', 'Zutaten', '🫒', 1),
+      ('Salz', 'Zutaten', '🧂', 1),
+      ('Zucker', 'Zutaten', '🍯', 1),
+      ('Mehl', 'Getreideprodukte', '🌾', 1),
+      ('Kaffee', 'Getränke', '☕', 1);
+    `);
+  }
+  
+  // Insert default global categories only if none exist
+  if (existingCategories.count === 0) {
+    await db.exec(`
+      INSERT INTO categories (name, icon, is_global) VALUES
+      ('Obst', '🍎', 1),
+      ('Gemüse', '🥕', 1),
+      ('Milchprodukte', '🥛', 1),
+      ('Fleisch', '🥩', 1),
+      ('Fisch', '🐟', 1),
+      ('Getreideprodukte', '🍞', 1),
+      ('Getränke', '🥤', 1),
+      ('Zutaten', '🧂', 1),
+      ('Tiefkühl', '🧊', 1),
+      ('Süßwaren', '🍭', 1),
+      ('Haushalt', '🧽', 1),
+      ('Körperpflege', '🧴', 1),
+      ('Sonstiges', '📦', 1);
+    `);
+  }
+
+  // Migration: Add UUIDs to existing users
+  try {
+    const usersMissingUuid = await db.all('SELECT id FROM users WHERE uuid IS NULL');
+    for (const user of usersMissingUuid) {
+      const userUuid = crypto.randomUUID();
+      await db.run('UPDATE users SET uuid = ? WHERE id = ?', userUuid, user.id);
+    }
+  } catch (error) {
+    console.log('UUID migration completed or not needed');
+  }
+  
+  return db;
+}
+
+// Middleware für JWT Authentication
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid token' });
+    }
+    req.user = user;
+    next();
+  });
+}
+
+// Database logging middleware
+async function logDatabaseOperation(method, query, params, responseTime, error, userId, ipAddress) {
+  try {
+    const db = await initDb();
+    await db.run(`
+      INSERT INTO db_logs (method, query, params, response_time, error, user_id, ip_address)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [
+      method,
+      query.substring(0, 1000), // Limit query length
+      params ? JSON.stringify(params).substring(0, 500) : null,
+      responseTime,
+      error ? error.substring(0, 500) : null,
+      userId,
+      ipAddress
+    ]);
+  } catch (logError) {
+    console.error('Error logging database operation:', logError);
+  }
+}
+
+// Enhanced database wrapper with logging
+async function executeQuery(method, query, params, userId, ipAddress) {
+  const startTime = Date.now();
+  let error = null;
+  let result = null;
+
+  try {
+    const db = await initDb();
+    if (method === 'run') {
+      result = await db.run(query, params);
+    } else if (method === 'get') {
+      result = await db.get(query, params);
+    } else if (method === 'all') {
+      result = await db.all(query, params);
+    }
+  } catch (err) {
+    error = err.message;
+    throw err;
+  } finally {
+    const responseTime = Date.now() - startTime;
+    await logDatabaseOperation(method, query, params, responseTime, error, userId, ipAddress);
+  }
+
+  return result;
+}
+
+// Simple CAPTCHA generation
+function generateCaptcha() {
+  const num1 = Math.floor(Math.random() * 10) + 1;
+  const num2 = Math.floor(Math.random() * 10) + 1;
+  const operation = Math.random() > 0.5 ? '+' : '-';
+  const answer = operation === '+' ? num1 + num2 : Math.max(num1, num2) - Math.min(num1, num2);
+  
+  return {
+    question: `${Math.max(num1, num2)} ${operation} ${Math.min(num1, num2)} = ?`,
+    answer: answer
+  };
+}
+
+async function main() {
+  const app = express();
+  app.use(cors());
+  app.use(express.json());
+  const db = await initDb();
+
+  // Clear all existing sessions on server restart
+  console.log('🔄 Server gestartet - Alle bestehenden Sessions werden gelöscht...');
+  
+  // Create a simple in-memory blacklist for existing tokens (in production use Redis)
+  const tokenBlacklist = new Set();
+  
+  // Enhanced JWT middleware with blacklist check
+  function authenticateTokenWithBlacklist(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' });
+    }
+
+    if (tokenBlacklist.has(token)) {
+      return res.status(401).json({ error: 'Token invalidated' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.status(403).json({ error: 'Invalid token' });
+      }
+      req.user = user;
+      next();
+    });
+  }
+
+  // CAPTCHA endpoint
+  app.get('/api/captcha', (req, res) => {
+    const captcha = generateCaptcha();
+    const captchaId = crypto.randomBytes(16).toString('hex');
+    
+    // In production, store this in Redis or database with expiration
+    // For now, we'll send it back and verify in registration
+    res.json({ 
+      captchaId,
+      question: captcha.question,
+      // Don't send answer to client, but we'll include it for simple demo
+      // In production, store this server-side
+      answer: captcha.answer 
+    });
+  });
+
+  // User registration
+  app.post('/api/register', async (req, res) => {
+    try {
+      const { username, password, confirmPassword, captchaAnswer, captchaExpected } = req.body;
+
+      // Validate input
+      if (!username || !password || !confirmPassword) {
+        return res.status(400).json({ error: 'Alle Felder sind erforderlich' });
+      }
+
+      if (password !== confirmPassword) {
+        return res.status(400).json({ error: 'Passwörter stimmen nicht überein' });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ error: 'Passwort muss mindestens 6 Zeichen lang sein' });
+      }
+
+      // Simple captcha verification
+      if (parseInt(captchaAnswer) !== parseInt(captchaExpected)) {
+        return res.status(400).json({ error: 'CAPTCHA ist falsch' });
+      }
+
+      // Check if username exists
+      const existingUser = await executeQuery('get', 'SELECT id FROM users WHERE username = ?', [username], null, req.ip);
+      if (existingUser) {
+        return res.status(400).json({ error: 'Benutzername bereits vergeben' });
+      }
+
+      // Hash password
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash(password, saltRounds);
+
+      // Generate unique user ID
+      const userUuid = crypto.randomUUID();
+
+      // Create user
+      const result = await db.run(
+        'INSERT INTO users (uuid, username, password_hash) VALUES (?, ?, ?)',
+        userUuid, username, passwordHash
+      );
+
+      // Create default shopping list
+      await db.run(
+        'INSERT INTO shopping_lists (user_id, name, icon) VALUES (?, ?, ?)',
+        result.lastID, 'Meine Einkaufsliste', '🛒'
+      );
+
+      res.status(201).json({ message: 'Benutzer erfolgreich registriert' });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: 'Registrierung fehlgeschlagen' });
+    }
+  });
+
+  // User login
+  app.post('/api/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Benutzername und Passwort erforderlich' });
+      }
+
+      // Find user
+      const user = await db.get('SELECT * FROM users WHERE username = ?', username);
+      if (!user) {
+        return res.status(401).json({ error: 'Ungültige Anmeldedaten' });
+      }
+
+      // Verify password
+      const validPassword = await bcrypt.compare(password, user.password_hash);
+      if (!validPassword) {
+        return res.status(401).json({ error: 'Ungültige Anmeldedaten' });
+      }
+
+      // Generate JWT
+      const token = jwt.sign(
+        { userId: user.id, username: user.username },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          username: user.username
+        }
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'Anmeldung fehlgeschlagen' });
+    }
+  });
+
+  // Get user profile with UUID
+  app.get('/api/user/profile', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const user = await db.get(
+        'SELECT id, uuid, username, created_at FROM users WHERE id = ?',
+        req.user.userId
+      );
+      
+      if (!user) {
+        return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+      }
+
+      res.json({
+        id: user.id,
+        uuid: user.uuid,
+        username: user.username,
+        created_at: user.created_at
+      });
+    } catch (error) {
+      console.error('Profile error:', error);
+      res.status(500).json({ error: 'Fehler beim Laden des Profils' });
+    }
+  });
+
+  // Get user's shopping lists
+  app.get('/api/lists', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const lists = await db.all(
+        'SELECT * FROM shopping_lists WHERE user_id = ? ORDER BY created_at DESC',
+        req.user.userId
+      );
+      res.json(lists);
+    } catch (error) {
+      console.error('Error fetching lists:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Listen' });
+    }
+  });
+
+  // Create shopping list
+  app.post('/api/lists', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { name, icon = '🛒' } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: 'Listenname ist erforderlich' });
+      }
+
+      const result = await db.run(
+        'INSERT INTO shopping_lists (user_id, name, icon) VALUES (?, ?, ?)',
+        req.user.userId, name, icon
+      );
+
+      res.json({ id: result.lastID, name, icon });
+    } catch (error) {
+      console.error('Error creating list:', error);
+      res.status(500).json({ error: 'Fehler beim Erstellen der Liste' });
+    }
+  });
+
+  // Delete shopping list
+  app.delete('/api/lists/:id', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if list belongs to user
+      const list = await db.get(
+        'SELECT * FROM shopping_lists WHERE id = ? AND user_id = ?',
+        id, req.user.userId
+      );
+      
+      if (!list) {
+        return res.status(404).json({ error: 'Liste nicht gefunden' });
+      }
+
+      await db.run('DELETE FROM shopping_lists WHERE id = ?', id);
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      res.status(500).json({ error: 'Fehler beim Löschen der Liste' });
+    }
+  });
+
+  // Get articles for a specific list
+  app.get('/api/lists/:listId/articles', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { listId } = req.params;
+      
+      // Verify list belongs to user
+      const list = await db.get(
+        'SELECT * FROM shopping_lists WHERE id = ? AND user_id = ?',
+        listId, req.user.userId
+      );
+      
+      if (!list) {
+        return res.status(404).json({ error: 'Liste nicht gefunden' });
+      }
+
+      const articles = await db.all(
+        'SELECT * FROM articles WHERE list_id = ? ORDER BY created_at DESC',
+        listId
+      );
+      
+      res.json(articles);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Artikel' });
+    }
+  });
+
+  // Add article to list
+  app.post('/api/lists/:listId/articles', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { listId } = req.params;
+      const { name, category, icon, comment = '' } = req.body;
+
+      if (!name || !category) {
+        return res.status(400).json({ error: 'Name und Kategorie sind erforderlich' });
+      }
+
+      // Verify list belongs to user
+      const list = await db.get(
+        'SELECT * FROM shopping_lists WHERE id = ? AND user_id = ?',
+        listId, req.user.userId
+      );
+      
+      if (!list) {
+        return res.status(404).json({ error: 'Liste nicht gefunden' });
+      }
+
+      const result = await db.run(
+        'INSERT INTO articles (name, category, icon, comment, user_id, list_id) VALUES (?, ?, ?, ?, ?, ?)',
+        name, category, icon, comment, req.user.userId, listId
+      );
+
+      res.json({ id: result.lastID });
+    } catch (error) {
+      console.error('Error creating article:', error);
+      res.status(500).json({ error: 'Fehler beim Hinzufügen des Artikels' });
+    }
+  });
+
+  // Update article
+  app.put('/api/articles/:id', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, category, icon, comment, is_bought } = req.body;
+
+      // Verify article belongs to user
+      const article = await db.get(
+        'SELECT * FROM articles WHERE id = ? AND user_id = ?',
+        id, req.user.userId
+      );
+      
+      if (!article) {
+        return res.status(404).json({ error: 'Artikel nicht gefunden' });
+      }
+
+      await db.run(
+        'UPDATE articles SET name=?, category=?, icon=?, comment=?, is_bought=? WHERE id=?',
+        name, category, icon, comment, is_bought ? 1 : 0, id
+      );
+
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error updating article:', error);
+      res.status(500).json({ error: 'Fehler beim Aktualisieren des Artikels' });
+    }
+  });
+
+  // Delete article
+  app.delete('/api/articles/:id', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verify article belongs to user
+      const article = await db.get(
+        'SELECT * FROM articles WHERE id = ? AND user_id = ?',
+        id, req.user.userId
+      );
+      
+      if (!article) {
+        return res.status(404).json({ error: 'Artikel nicht gefunden' });
+      }
+
+      await db.run('DELETE FROM articles WHERE id = ?', id);
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      res.status(500).json({ error: 'Fehler beim Löschen des Artikels' });
+    }
+  });
+
+  // Get user's favorites
+  app.get('/api/favorites', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const favorites = await db.all(
+        'SELECT * FROM favorites WHERE user_id = ? ORDER BY created_at DESC',
+        req.user.userId
+      );
+      res.json(favorites);
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Favoriten' });
+    }
+  });
+
+  // Add to favorites
+  app.post('/api/favorites', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { name, category, icon, comment = '' } = req.body;
+
+      if (!name || !category) {
+        return res.status(400).json({ error: 'Name und Kategorie sind erforderlich' });
+      }
+
+      await db.run(
+        'INSERT OR REPLACE INTO favorites (user_id, name, category, icon, comment) VALUES (?, ?, ?, ?, ?)',
+        req.user.userId, name, category, icon, comment
+      );
+
+      res.json({ message: 'Zu Favoriten hinzugefügt' });
+    } catch (error) {
+      console.error('Error adding favorite:', error);
+      res.status(500).json({ error: 'Fehler beim Hinzufügen zu Favoriten' });
+    }
+  });
+
+  // Remove from favorites
+  app.delete('/api/favorites/:id', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await db.run(
+        'DELETE FROM favorites WHERE id = ? AND user_id = ?',
+        id, req.user.userId
+      );
+      
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+      res.status(500).json({ error: 'Fehler beim Entfernen aus Favoriten' });
+    }
+  });
+
+  // Change password
+  app.post('/api/change-password', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Aktuelles und neues Passwort erforderlich' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'Neues Passwort muss mindestens 6 Zeichen lang sein' });
+      }
+
+      // Verify current password
+      const user = await db.get('SELECT * FROM users WHERE id = ?', req.user.userId);
+      if (!user) {
+        return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+      }
+
+      const validPassword = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!validPassword) {
+        return res.status(401).json({ error: 'Aktuelles Passwort ist falsch' });
+      }
+
+      // Hash new password
+      const saltRounds = 10;
+      const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update password
+      await db.run(
+        'UPDATE users SET password_hash = ? WHERE id = ?',
+        newPasswordHash, req.user.userId
+      );
+
+      res.json({ message: 'Passwort erfolgreich geändert' });
+    } catch (error) {
+      console.error('Change password error:', error);
+      res.status(500).json({ error: 'Fehler beim Ändern des Passworts' });
+    }
+  });
+
+  // Change username
+  app.post('/api/change-username', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { newUsername } = req.body;
+
+      if (!newUsername || newUsername.length < 3) {
+        return res.status(400).json({ error: 'Benutzername muss mindestens 3 Zeichen lang sein' });
+      }
+
+      // Check if username is already taken
+      const existingUser = await db.get('SELECT id FROM users WHERE username = ? AND id != ?', newUsername, req.user.userId);
+      if (existingUser) {
+        return res.status(400).json({ error: 'Benutzername bereits vergeben' });
+      }
+
+      // Update username
+      await db.run(
+        'UPDATE users SET username = ? WHERE id = ?',
+        newUsername, req.user.userId
+      );
+
+      res.json({ message: 'Benutzername erfolgreich geändert' });
+    } catch (error) {
+      console.error('Change username error:', error);
+      res.status(500).json({ error: 'Fehler beim Ändern des Benutzernamens' });
+    }
+  });
+
+  // Get user's article history (unique articles they've added before)
+  app.get('/api/articles/history', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const articles = await db.all(`
+        SELECT DISTINCT name, category, icon, comment 
+        FROM articles 
+        WHERE user_id = ? 
+        ORDER BY name ASC
+      `, req.user.userId);
+      
+      res.json(articles);
+    } catch (error) {
+      console.error('Error fetching article history:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Artikel-Historie' });
+    }
+  });
+
+  // Get standard articles (global + user's custom)
+  app.get('/api/standard-articles', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const articles = await db.all(`
+        SELECT id, name, category, icon, is_global, user_id
+        FROM standard_articles 
+        WHERE is_global = 1 OR user_id = ?
+        ORDER BY category, name ASC
+      `, req.user.userId);
+      
+      res.json(articles);
+    } catch (error) {
+      console.error('Error fetching standard articles:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Standardartikel' });
+    }
+  });
+
+  // Add custom standard article
+  app.post('/api/standard-articles', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { name, category, icon } = req.body;
+
+      if (!name || !category) {
+        return res.status(400).json({ error: 'Name und Kategorie sind erforderlich' });
+      }
+
+      const result = await db.run(
+        'INSERT INTO standard_articles (name, category, icon, is_global, user_id) VALUES (?, ?, ?, 0, ?)',
+        name, category, icon, req.user.userId
+      );
+
+      res.json({ id: result.lastID });
+    } catch (error) {
+      if (error.message.includes('UNIQUE constraint failed')) {
+        return res.status(400).json({ error: 'Dieser Artikel existiert bereits in den Standardartikeln' });
+      }
+      console.error('Error creating standard article:', error);
+      res.status(500).json({ error: 'Fehler beim Hinzufügen des Standardartikels' });
+    }
+  });
+
+  // Delete custom standard article
+  app.delete('/api/standard-articles/:id', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Allow deletion of user's custom articles AND global ones (for flexibility)
+      const result = await db.run(
+        'DELETE FROM standard_articles WHERE id = ? AND (user_id = ? OR is_global = 1)',
+        id, req.user.userId
+      );
+
+      if (result.changes === 0) {
+        return res.status(404).json({ error: 'Standardartikel nicht gefunden' });
+      }
+
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error deleting standard article:', error);
+      res.status(500).json({ error: 'Fehler beim Löschen des Standardartikels' });
+    }
+  });
+
+  // Bulk delete standard articles
+  app.post('/api/standard-articles/bulk-delete', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { ids } = req.body;
+
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'IDs Array erforderlich' });
+      }
+
+      const placeholders = ids.map(() => '?').join(',');
+      const result = await db.run(
+        `DELETE FROM standard_articles WHERE id IN (${placeholders}) AND (user_id = ? OR is_global = 1)`,
+        ...ids, req.user.userId
+      );
+
+      res.json({ deleted: result.changes });
+    } catch (error) {
+      console.error('Error bulk deleting standard articles:', error);
+      res.status(500).json({ error: 'Fehler beim Löschen der Standardartikel' });
+    }
+  });
+
+  // Update custom standard article
+  app.put('/api/standard-articles/:id', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, category, icon } = req.body;
+
+      if (!name || !category) {
+        return res.status(400).json({ error: 'Name und Kategorie sind erforderlich' });
+      }
+
+      // Allow updating of user's custom articles AND global ones (for flexibility)
+      const result = await db.run(
+        'UPDATE standard_articles SET name = ?, category = ?, icon = ? WHERE id = ? AND (user_id = ? OR is_global = 1)',
+        name, category, icon, id, req.user.userId
+      );
+
+      if (result.changes === 0) {
+        return res.status(404).json({ error: 'Standardartikel nicht gefunden' });
+      }
+
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error updating standard article:', error);
+      res.status(500).json({ error: 'Fehler beim Bearbeiten des Standardartikels' });
+    }
+  });
+
+  // Get categories (global + user's custom)
+  app.get('/api/categories', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const categories = await db.all(`
+        SELECT id, name, icon, is_global, user_id
+        FROM categories 
+        WHERE is_global = 1 OR user_id = ?
+        ORDER BY name ASC
+      `, req.user.userId);
+      
+      res.json(categories);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Kategorien' });
+    }
+  });
+
+  // Add custom category
+  app.post('/api/categories', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { name, icon } = req.body;
+
+      if (!name || !icon) {
+        return res.status(400).json({ error: 'Name und Icon sind erforderlich' });
+      }
+
+      const result = await db.run(
+        'INSERT INTO categories (name, icon, is_global, user_id) VALUES (?, ?, 0, ?)',
+        name, icon, req.user.userId
+      );
+
+      res.json({ id: result.lastID });
+    } catch (error) {
+      if (error.message.includes('UNIQUE constraint failed')) {
+        return res.status(400).json({ error: 'Diese Kategorie existiert bereits' });
+      }
+      console.error('Error creating category:', error);
+      res.status(500).json({ error: 'Fehler beim Hinzufügen der Kategorie' });
+    }
+  });
+
+  // Update custom category
+  app.put('/api/categories/:id', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, icon } = req.body;
+
+      if (!name || !icon) {
+        return res.status(400).json({ error: 'Name und Icon sind erforderlich' });
+      }
+
+      // Only allow updating of user's custom categories (not global ones)
+      const result = await db.run(
+        'UPDATE categories SET name = ?, icon = ? WHERE id = ? AND user_id = ? AND is_global = 0',
+        name, icon, id, req.user.userId
+      );
+
+      if (result.changes === 0) {
+        return res.status(404).json({ error: 'Kategorie nicht gefunden oder nicht bearbeitbar' });
+      }
+
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error updating category:', error);
+      res.status(500).json({ error: 'Fehler beim Bearbeiten der Kategorie' });
+    }
+  });
+
+  // Delete custom category
+  app.delete('/api/categories/:id', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Only allow deletion of user's custom categories (not global ones)
+      const result = await db.run(
+        'DELETE FROM categories WHERE id = ? AND user_id = ? AND is_global = 0',
+        id, req.user.userId
+      );
+
+      if (result.changes === 0) {
+        return res.status(404).json({ error: 'Kategorie nicht gefunden oder nicht löschbar' });
+      }
+
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      res.status(500).json({ error: 'Fehler beim Löschen der Kategorie' });
+    }
+  });
+
+  // Admin middleware
+  const adminAuth = (req, res, next) => {
+    const { password } = req.body || req.query;
+    if (password !== 'HureAgnes21') {
+      return res.status(401).json({ error: 'Ungültiges Admin-Passwort' });
+    }
+    next();
+  };
+
+  // Validate admin password function
+  const validateAdminPassword = (password) => {
+    return password === 'HureAgnes21';
+  };
+
+  // Admin Routes
+  
+  // Get all users (admin only)
+  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/users', adminAuth, async (req, res) => {
+    try {
+      const users = await db.all(`
+        SELECT 
+          u.id, 
+          u.username, 
+          u.created_at,
+          COUNT(DISTINCT sl.id) as list_count,
+          COUNT(DISTINCT a.id) as article_count,
+          COUNT(DISTINCT f.id) as favorite_count
+        FROM users u
+        LEFT JOIN shopping_lists sl ON u.id = sl.user_id
+        LEFT JOIN articles a ON u.id = a.user_id
+        LEFT JOIN favorites f ON u.id = f.user_id
+        GROUP BY u.id, u.username, u.created_at
+        ORDER BY u.created_at DESC
+      `);
+      
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Benutzer' });
+    }
+  });
+
+  // Get system statistics (admin only)
+  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/stats', adminAuth, async (req, res) => {
+    try {
+      const stats = await db.get(`
+        SELECT 
+          (SELECT COUNT(*) FROM users) as total_users,
+          (SELECT COUNT(*) FROM shopping_lists) as total_lists,
+          (SELECT COUNT(*) FROM articles) as total_articles,
+          (SELECT COUNT(*) FROM favorites) as total_favorites,
+          (SELECT COUNT(*) FROM standard_articles WHERE is_global = 0) as custom_standard_articles,
+          (SELECT COUNT(*) FROM categories WHERE is_global = 0) as custom_categories,
+          (SELECT COUNT(*) FROM broadcasts WHERE is_active = 1) as active_broadcasts
+      `);
+      
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Statistiken' });
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete('/api/dJkL9mN2pQ7rS4tUvWxYz/users/:id', adminAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const result = await db.run('DELETE FROM users WHERE id = ?', id);
+      
+      if (result.changes === 0) {
+        return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+      }
+      
+      res.json({ message: 'Benutzer erfolgreich gelöscht' });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ error: 'Fehler beim Löschen des Benutzers' });
+    }
+  });
+
+  // Broadcast management
+
+  // Create broadcast (admin only)
+  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts', adminAuth, async (req, res) => {
+    try {
+      const { title, message, type, requires_confirmation, is_permanent, expires_at } = req.body;
+      
+      if (!title || !message || !type) {
+        return res.status(400).json({ error: 'Titel, Nachricht und Typ sind erforderlich' });
+      }
+      
+      const result = await db.run(`
+        INSERT INTO broadcasts (title, message, type, requires_confirmation, is_permanent, expires_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, title, message, type, requires_confirmation ? 1 : 0, is_permanent ? 1 : 0, expires_at);
+      
+      res.json({ id: result.lastID, message: 'Broadcast erstellt' });
+    } catch (error) {
+      console.error('Error creating broadcast:', error);
+      res.status(500).json({ error: 'Fehler beim Erstellen des Broadcasts' });
+    }
+  });
+
+  // Get all broadcasts (admin only)
+  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/list', adminAuth, async (req, res) => {
+    try {
+      const broadcasts = await db.all(`
+        SELECT 
+          b.*,
+          COUNT(bc.id) as confirmation_count,
+          (SELECT COUNT(*) FROM users) as total_users
+        FROM broadcasts b
+        LEFT JOIN broadcast_confirmations bc ON b.id = bc.broadcast_id
+        GROUP BY b.id
+        ORDER BY b.created_at DESC
+      `);
+      
+      res.json(broadcasts);
+    } catch (error) {
+      console.error('Error fetching broadcasts:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Broadcasts' });
+    }
+  });
+
+  // Toggle broadcast status (admin only)
+  app.put('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/:id/toggle', adminAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await db.run(`
+        UPDATE broadcasts 
+        SET is_active = CASE WHEN is_active = 1 THEN 0 ELSE 1 END 
+        WHERE id = ?
+      `, id);
+      
+      res.json({ message: 'Broadcast-Status geändert' });
+    } catch (error) {
+      console.error('Error toggling broadcast:', error);
+      res.status(500).json({ error: 'Fehler beim Ändern des Broadcast-Status' });
+    }
+  });
+
+  // Delete broadcast (admin only)
+  app.delete('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/:id', adminAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const result = await db.run('DELETE FROM broadcasts WHERE id = ?', id);
+      
+      if (result.changes === 0) {
+        return res.status(404).json({ error: 'Broadcast nicht gefunden' });
+      }
+      
+      res.json({ message: 'Broadcast gelöscht' });
+    } catch (error) {
+      console.error('Error deleting broadcast:', error);
+      res.status(500).json({ error: 'Fehler beim Löschen des Broadcasts' });
+    }
+  });
+
+  // User broadcast endpoints
+
+  // Get active broadcasts for user
+  app.get('/api/broadcasts', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const broadcasts = await db.all(`
+        SELECT 
+          b.*,
+          bc.confirmed_at IS NOT NULL as is_confirmed
+        FROM broadcasts b
+        LEFT JOIN broadcast_confirmations bc ON b.id = bc.broadcast_id AND bc.user_id = ?
+        WHERE b.is_active = 1 
+        AND (b.expires_at IS NULL OR b.expires_at > datetime('now'))
+        AND (b.requires_confirmation = 0 OR bc.confirmed_at IS NULL OR b.is_permanent = 1)
+        ORDER BY b.created_at DESC
+      `, req.user.userId);
+      
+      res.json(broadcasts);
+    } catch (error) {
+      console.error('Error fetching user broadcasts:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Nachrichten' });
+    }
+  });
+
+  // Confirm broadcast
+  app.post('/api/broadcasts/:id/confirm', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await db.run(`
+        INSERT OR IGNORE INTO broadcast_confirmations (broadcast_id, user_id)
+        VALUES (?, ?)
+      `, id, req.user.userId);
+      
+      res.json({ message: 'Nachricht bestätigt' });
+    } catch (error) {
+      console.error('Error confirming broadcast:', error);
+      res.status(500).json({ error: 'Fehler beim Bestätigen der Nachricht' });
+    }
+  });
+
+  // Clean up database duplicates (Admin only)
+  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/cleanup', adminAuth, async (req, res) => {
+    try {
+      // Remove duplicate standard articles (keep only one of each name/category combination)
+      await db.exec(`
+        DELETE FROM standard_articles 
+        WHERE id NOT IN (
+          SELECT MIN(id) 
+          FROM standard_articles 
+          WHERE is_global = 1
+          GROUP BY name, category
+        ) AND is_global = 1
+      `);
+
+      // Remove duplicate categories (keep only one of each name)
+      await db.exec(`
+        DELETE FROM categories 
+        WHERE id NOT IN (
+          SELECT MIN(id) 
+          FROM categories 
+          WHERE is_global = 1
+          GROUP BY name
+        ) AND is_global = 1
+      `);
+
+      const articlesResult = await db.get('SELECT COUNT(*) as count FROM standard_articles WHERE is_global = 1');
+      const categoriesResult = await db.get('SELECT COUNT(*) as count FROM categories WHERE is_global = 1');
+
+      res.json({ 
+        message: 'Datenbank bereinigt',
+        remaining_articles: articlesResult.count,
+        remaining_categories: categoriesResult.count
+      });
+    } catch (error) {
+      console.error('Error cleaning database:', error);
+      res.status(500).json({ error: 'Fehler beim Bereinigen der Datenbank' });
+    }
+  });
+
+  // Legacy endpoints for backward compatibility (if not authenticated, return empty arrays)
+  app.get('/api/articles', async (req, res) => {
+    res.json([]);
+  });
+
+  app.post('/api/articles', async (req, res) => {
+    res.status(401).json({ error: 'Authentication required' });
+  });
+
+  app.put('/api/articles/:id', async (req, res) => {
+    res.status(401).json({ error: 'Authentication required' });
+  });
+
+  app.delete('/api/articles/:id', async (req, res) => {
+    res.status(401).json({ error: 'Authentication required' });
+  });
+
+  // Get database logs (Admin only)
+  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/logs', async (req, res) => {
+    try {
+      const { password, limit = 100, offset = 0 } = req.body;
+      
+      if (!validateAdminPassword(password)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const logs = await db.all(`
+        SELECT 
+          dl.*,
+          u.username
+        FROM db_logs dl
+        LEFT JOIN users u ON dl.user_id = u.id
+        ORDER BY dl.created_at DESC
+        LIMIT ? OFFSET ?
+      `, [limit, offset]);
+
+      const totalCount = await db.get('SELECT COUNT(*) as count FROM db_logs');
+
+      res.json({
+        logs,
+        total: totalCount.count,
+        limit,
+        offset
+      });
+    } catch (error) {
+      console.error('Error fetching database logs:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Datenbank-Logs' });
+    }
+  });
+
+  // Clear database logs (Admin only)
+  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/logs/clear', async (req, res) => {
+    try {
+      const { password, older_than_days = 30 } = req.body;
+      
+      if (!validateAdminPassword(password)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const result = await db.run(`
+        DELETE FROM db_logs 
+        WHERE created_at < datetime('now', '-' || ? || ' days')
+      `, [older_than_days]);
+
+      res.json({ 
+        message: `${result.changes} Log-Einträge gelöscht`,
+        deleted_count: result.changes
+      });
+    } catch (error) {
+      console.error('Error clearing database logs:', error);
+      res.status(500).json({ error: 'Fehler beim Löschen der Logs' });
+    }
+  });
+
+  app.listen(4000, () => console.log('Backend läuft auf Port 4000'));
+}
+
+main();
