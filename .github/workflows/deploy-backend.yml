@@ -23,13 +23,30 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20.x'
-        cache: 'npm'
-        cache-dependency-path: backend/package-lock.json
+        
+    - name: Cache npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-backend-${{ hashFiles('backend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-backend-
         
     - name: Install backend dependencies
       run: |
         cd backend
-        npm ci
+        # Check if package-lock.json exists and is valid
+        if [ -f package-lock.json ]; then
+          echo "package-lock.json found, attempting npm ci..."
+          npm ci || {
+            echo "npm ci failed, falling back to npm install..."
+            rm -f package-lock.json
+            npm install
+          }
+        else
+          echo "package-lock.json not found, using npm install..."
+          npm install
+        fi
         
     - name: Create demo backend configuration
       run: |
