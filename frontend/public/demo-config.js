@@ -184,6 +184,94 @@ if (window.DEMO_CONFIG.features.offlineMode) {
             json: () => Promise.resolve(userLists)
           };
           
+        case endpoint.includes('/lists') && method === 'POST':
+          const newList = {
+            id: Date.now(),
+            uuid: `list-${Date.now()}`,
+            name: body.name,
+            icon: body.icon || '🛒',
+            user_id: this.storage.currentUser?.id,
+            articles: []
+          };
+          this.storage.lists.push(newList);
+          this.save();
+          return { 
+            ok: true, 
+            json: () => Promise.resolve(newList)
+          };
+          
+        case endpoint.includes('/lists/') && method === 'DELETE':
+          const listId = parseInt(endpoint.split('/lists/')[1]);
+          this.storage.lists = this.storage.lists.filter(l => l.id !== listId);
+          this.save();
+          return { ok: true, json: () => Promise.resolve({}) };
+          
+        case endpoint.includes('/articles') && method === 'GET':
+          // Handle /lists/{id}/articles
+          const listMatch = endpoint.match(/\/lists\/(\d+)\/articles/);
+          if (listMatch) {
+            const listId = parseInt(listMatch[1]);
+            const list = this.storage.lists.find(l => l.id === listId);
+            return { 
+              ok: true, 
+              json: () => Promise.resolve(list?.articles || [])
+            };
+          }
+          return { ok: true, json: () => Promise.resolve([]) };
+          
+        case endpoint.includes('/articles') && method === 'POST':
+          // Handle /lists/{id}/articles
+          const postListMatch = endpoint.match(/\/lists\/(\d+)\/articles/);
+          if (postListMatch) {
+            const listId = parseInt(postListMatch[1]);
+            const list = this.storage.lists.find(l => l.id === listId);
+            if (list) {
+              const newArticle = {
+                id: Date.now(),
+                ...body,
+                is_bought: false
+              };
+              list.articles.push(newArticle);
+              this.save();
+              return { 
+                ok: true, 
+                json: () => Promise.resolve(newArticle)
+              };
+            }
+          }
+          return { ok: false };
+          
+        case endpoint.includes('/articles/') && method === 'PUT':
+          // Handle /lists/{listId}/articles/{articleId}
+          const putMatch = endpoint.match(/\/lists\/(\d+)\/articles\/(\d+)/);
+          if (putMatch) {
+            const [, listId, articleId] = putMatch;
+            const list = this.storage.lists.find(l => l.id === parseInt(listId));
+            if (list) {
+              const articleIndex = list.articles.findIndex(a => a.id === parseInt(articleId));
+              if (articleIndex >= 0) {
+                list.articles[articleIndex] = { ...list.articles[articleIndex], ...body };
+                this.save();
+                return { ok: true };
+              }
+            }
+          }
+          return { ok: false };
+          
+        case endpoint.includes('/articles/') && method === 'DELETE':
+          // Handle /lists/{listId}/articles/{articleId}
+          const deleteMatch = endpoint.match(/\/lists\/(\d+)\/articles\/(\d+)/);
+          if (deleteMatch) {
+            const [, listId, articleId] = deleteMatch;
+            const list = this.storage.lists.find(l => l.id === parseInt(listId));
+            if (list) {
+              list.articles = list.articles.filter(a => a.id !== parseInt(articleId));
+              this.save();
+              return { ok: true };
+            }
+          }
+          return { ok: false };
+          
         case endpoint.includes('/categories') && method === 'GET':
           return { 
             ok: true, 
@@ -196,7 +284,38 @@ if (window.DEMO_CONFIG.features.offlineMode) {
             json: () => Promise.resolve(this.storage.standardArticles)
           };
           
+        case endpoint.includes('/favorites') && method === 'GET':
+          return { 
+            ok: true, 
+            json: () => Promise.resolve(this.storage.favorites)
+          };
+          
+        case endpoint.includes('/favorites') && method === 'POST':
+          const newFavorite = { ...body, id: Date.now() };
+          this.storage.favorites.push(newFavorite);
+          this.save();
+          return { ok: true, json: () => Promise.resolve(newFavorite) };
+          
+        case endpoint.includes('/favorites/') && method === 'DELETE':
+          const favId = parseInt(endpoint.split('/favorites/')[1]);
+          this.storage.favorites = this.storage.favorites.filter(f => f.id !== favId);
+          this.save();
+          return { ok: true };
+          
+        case endpoint.includes('/broadcasts'):
+          return { ok: true, json: () => Promise.resolve([]) };
+          
+        case endpoint.includes('/user/profile'):
+          return { 
+            ok: true, 
+            json: () => Promise.resolve(this.storage.currentUser || {})
+          };
+          
+        case endpoint.includes('/articles/history'):
+          return { ok: true, json: () => Promise.resolve([]) };
+          
         default:
+          console.warn('Unhandled DemoAPI endpoint:', endpoint, method);
           return { 
             ok: true, 
             json: () => Promise.resolve([])

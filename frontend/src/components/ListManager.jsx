@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import * as api from '../utils/api';
 
 const LIST_ICONS = ['🛒', '🍎', '🏠', '⚡', '🎮', '📚', '🧽', '🔧'];
 
@@ -18,20 +19,12 @@ export default function ListManager({ onSelectList, currentList }) {
 
   async function loadLists() {
     try {
-      const response = await fetch('http://localhost:4000/api/lists', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const data = await api.fetchLists(token);
+      setLists(data);
       
-      if (response.ok) {
-        const data = await response.json();
-        setLists(data);
-        
-        // Select first list if none selected
-        if (!currentList && data.length > 0) {
-          onSelectList(data[0]);
-        }
+      // Select first list if none selected
+      if (!currentList && data.length > 0) {
+        onSelectList(data[0]);
       }
     } catch (error) {
       console.error('Error loading lists:', error);
@@ -44,26 +37,12 @@ export default function ListManager({ onSelectList, currentList }) {
     if (!newListName.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:4000/api/lists', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: newListName,
-          icon: newListIcon
-        })
-      });
-
-      if (response.ok) {
-        const newList = await response.json();
-        setLists(prev => [newList, ...prev]);
-        setNewListName('');
-        setNewListIcon('🛒');
-        setShowCreateForm(false);
-        onSelectList(newList);
-      }
+      const newList = await api.createList(newListName, token);
+      setLists(prev => [newList, ...prev]);
+      setNewListName('');
+      setNewListIcon('🛒');
+      setShowCreateForm(false);
+      onSelectList(newList);
     } catch (error) {
       console.error('Error creating list:', error);
     }
@@ -73,21 +52,13 @@ export default function ListManager({ onSelectList, currentList }) {
     if (!window.confirm('Liste wirklich löschen? Alle Artikel gehen verloren.')) return;
 
     try {
-      const response = await fetch(`http://localhost:4000/api/lists/${listId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        setLists(prev => prev.filter(list => list.id !== listId));
-        
-        // Select another list if current was deleted
-        if (currentList?.id === listId) {
-          const remainingLists = lists.filter(list => list.id !== listId);
-          onSelectList(remainingLists[0] || null);
-        }
+      await api.deleteList(listId, token);
+      setLists(prev => prev.filter(list => list.id !== listId));
+      
+      // Select another list if current was deleted
+      if (currentList?.id === listId) {
+        const remainingLists = lists.filter(list => list.id !== listId);
+        onSelectList(remainingLists[0] || null);
       }
     } catch (error) {
       console.error('Error deleting list:', error);
