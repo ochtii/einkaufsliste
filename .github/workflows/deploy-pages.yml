@@ -1,0 +1,187 @@
+# =============================================================================
+# GitHub Pages Deployment for Einkaufsliste Frontend
+# =============================================================================
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Setup Pages
+      if: matrix.node-version == '20.x'
+      uses: actions/configure-pages@v4
+      
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Build frontend for production
+      run: |
+        cd frontend
+        npm run build
+      env:
+        CI: false
+        GENERATE_SOURCEMAP: false
+        PUBLIC_URL: /einkaufsliste
+        
+    - name: Create demo configuration
+      if: matrix.node-version == '20.x'
+      run: |
+        cd frontend/build
+        # Create demo configuration file
+        cat > demo-config.js << 'EOF'
+        // Demo Configuration for GitHub Pages
+        window.DEMO_CONFIG = {
+          isDemoMode: true,
+          demoMessage: 'Dies ist eine Demo-Version der Einkaufsliste App',
+          backendUrl: 'https://einkaufsliste-backend-demo.herokuapp.com',
+          features: {
+            registration: true,
+            userManagement: false,
+            adminPanel: false,
+            realTimeSync: false
+          },
+          demoData: {
+            users: [
+              { username: 'demo', password: 'demo123', role: 'user' },
+              { username: 'admin', password: 'admin123', role: 'admin' }
+            ],
+            sampleLists: [
+              { name: 'Wocheneinkauf', items: ['Milch', 'Brot', 'Äpfel'] },
+              { name: 'Party-Einkauf', items: ['Chips', 'Getränke', 'Pizza'] }
+            ]
+          }
+        };
+        EOF
+        
+        # Create demo instructions
+        cat > demo-instructions.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="de">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Einkaufsliste Demo - Anleitung</title>
+            <style>
+                body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                .demo-banner { background: #3b82f6; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                .credentials { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 15px 0; }
+                .feature-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+                .feature-card { background: white; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; }
+            </style>
+        </head>
+        <body>
+            <div class="demo-banner">
+                <h1>🛒 Einkaufsliste Demo</h1>
+                <p>Willkommen zur Demo-Version der Einkaufsliste-Anwendung!</p>
+            </div>
+            
+            <h2>📋 Demo-Anmeldedaten</h2>
+            <div class="credentials">
+                <h3>🧑‍💼 Benutzer-Account:</h3>
+                <p><strong>Benutzername:</strong> demo</p>
+                <p><strong>Passwort:</strong> demo123</p>
+                
+                <h3>👨‍💻 Admin-Account:</h3>
+                <p><strong>Benutzername:</strong> admin</p>
+                <p><strong>Passwort:</strong> admin123</p>
+            </div>
+            
+            <h2>✨ Verfügbare Features</h2>
+            <div class="feature-list">
+                <div class="feature-card">
+                    <h3>📝 Einkaufslisten</h3>
+                    <p>Erstellen und verwalten Sie multiple Einkaufslisten</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🏷️ Kategorien</h3>
+                    <p>Organisieren Sie Artikel nach Kategorien mit Emojis</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⭐ Favoriten</h3>
+                    <p>Speichern Sie häufig verwendete Artikel</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📄 Export</h3>
+                    <p>Exportieren Sie Listen als Textdateien</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🌙 Dark Theme</h3>
+                    <p>Moderne, responsive Benutzeroberfläche</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📱 Responsive</h3>
+                    <p>Funktioniert auf Desktop und Mobilgeräten</p>
+                </div>
+            </div>
+            
+            <h2>🚀 Zur Demo-App</h2>
+            <p><a href="index.html" style="display: inline-block; background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px;">Demo starten</a></p>
+            
+            <h2>📚 Mehr Informationen</h2>
+            <p>Vollständige Dokumentation und Quellcode:</p>
+            <ul>
+                <li><a href="https://github.com/ochtii/einkaufsliste">GitHub Repository</a></li>
+                <li><a href="https://github.com/ochtii/einkaufsliste#readme">README.md</a></li>
+                <li><a href="https://github.com/ochtii/einkaufsliste/blob/main/LICENSE">MIT License</a></li>
+            </ul>
+        </body>
+        </html>
+        EOF
+        
+    - name: Upload artifact
+      if: matrix.node-version == '20.x'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./frontend/build
+
+  # Deployment job
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

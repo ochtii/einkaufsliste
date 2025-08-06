@@ -1,0 +1,194 @@
+# =============================================================================
+# Demo Backend Deployment Workflow
+# =============================================================================
+name: Deploy Demo Backend
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+        
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm ci
+        
+    - name: Create demo backend configuration
+      run: |
+        cd backend
+        
+        # Create demo environment file
+        cat > .env.demo << 'EOF'
+        NODE_ENV=production
+        PORT=3000
+        JWT_SECRET=demo-jwt-secret-key-for-github-pages
+        DB_PATH=./demo.sqlite
+        DEMO_MODE=true
+        CORS_ORIGIN=https://ochtii.github.io
+        EOF
+        
+        # Create demo data seed script
+        cat > demo-seed.js << 'EOF'
+        const sqlite3 = require('sqlite3').verbose();
+        const bcrypt = require('bcrypt');
+        const { v4: uuidv4 } = require('uuid');
+        
+        const db = new sqlite3.Database('./demo.sqlite');
+        
+        // Create tables and seed demo data
+        db.serialize(() => {
+          // Users table
+          db.run(`CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT UNIQUE NOT NULL,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE,
+            password TEXT NOT NULL,
+            role TEXT DEFAULT 'user',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )`);
+          
+          // Categories table
+          db.run(`CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            icon TEXT NOT NULL,
+            user_id INTEGER,
+            is_global BOOLEAN DEFAULT FALSE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )`);
+          
+          // Standard articles table
+          db.run(`CREATE TABLE IF NOT EXISTS standard_articles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            icon TEXT,
+            user_id INTEGER,
+            is_global BOOLEAN DEFAULT FALSE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )`);
+          
+          // Lists table
+          db.run(`CREATE TABLE IF NOT EXISTS lists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+          )`);
+          
+          // Articles table
+          db.run(`CREATE TABLE IF NOT EXISTS articles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT,
+            icon TEXT,
+            comment TEXT,
+            is_bought BOOLEAN DEFAULT FALSE,
+            list_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (list_id) REFERENCES lists (id)
+          )`);
+          
+          // Seed demo users
+          const demoPasswordHash = bcrypt.hashSync('demo123', 10);
+          const adminPasswordHash = bcrypt.hashSync('admin123', 10);
+          
+          db.run(`INSERT OR IGNORE INTO users (uuid, username, email, password, role) VALUES 
+            (?, 'demo', 'demo@example.com', ?, 'user'),
+            (?, 'admin', 'admin@example.com', ?, 'admin')
+          `, [uuidv4(), demoPasswordHash, uuidv4(), adminPasswordHash]);
+          
+          // Seed demo categories
+          db.run(`INSERT OR IGNORE INTO categories (name, icon, is_global) VALUES 
+            ('Obst & Gemüse', '🍎', TRUE),
+            ('Milchprodukte', '🥛', TRUE),
+            ('Fleisch & Fisch', '🥩', TRUE),
+            ('Brot & Backwaren', '🍞', TRUE),
+            ('Getränke', '🥤', TRUE),
+            ('Süßwaren', '🍫', TRUE),
+            ('Haushalt', '🧽', TRUE),
+            ('Sonstiges', '📦', TRUE)
+          `);
+          
+          // Seed demo standard articles
+          db.run(`INSERT OR IGNORE INTO standard_articles (name, category, icon, is_global) VALUES 
+            ('Äpfel', 'Obst & Gemüse', '🍎', TRUE),
+            ('Bananen', 'Obst & Gemüse', '🍌', TRUE),
+            ('Milch', 'Milchprodukte', '🥛', TRUE),
+            ('Käse', 'Milchprodukte', '🧀', TRUE),
+            ('Brot', 'Brot & Backwaren', '🍞', TRUE),
+            ('Butter', 'Milchprodukte', '🧈', TRUE),
+            ('Wasser', 'Getränke', '💧', TRUE),
+            ('Kaffee', 'Getränke', '☕', TRUE)
+          `);
+        });
+        
+        db.close();
+        console.log('Demo database seeded successfully!');
+        EOF
+        
+        # Run demo seed script
+        node demo-seed.js
+        
+    # Add deployment steps for your chosen platform here
+    # Examples for different platforms:
+    
+    # For Railway.app deployment:
+    # - name: Deploy to Railway
+    #   run: |
+    #     npm install -g @railway/cli
+    #     railway login --browserless
+    #     railway up
+    #   env:
+    #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    
+    # For Heroku deployment:
+    # - name: Deploy to Heroku
+    #   uses: akhileshns/heroku-deploy@v3.12.12
+    #   with:
+    #     heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+    #     heroku_app_name: "einkaufsliste-demo"
+    #     heroku_email: ${{ secrets.HEROKU_EMAIL }}
+    #     appdir: "backend"
+    
+    # For Render.com deployment:
+    # - name: Deploy to Render
+    #   run: |
+    #     curl -X POST \
+    #       -H "Accept: application/json" \
+    #       -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+    #       "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"
+    
+    - name: Deployment Summary
+      run: |
+        echo "🚀 Demo Backend Deployment Summary:"
+        echo "📁 Backend files prepared"
+        echo "🗄️ Demo database seeded"
+        echo "⚙️ Environment configured"
+        echo ""
+        echo "📝 Next steps for deployment:"
+        echo "1. Choose a deployment platform (Railway, Heroku, Render, etc.)"
+        echo "2. Add platform-specific secrets to GitHub repository"
+        echo "3. Uncomment the relevant deployment section above"
+        echo "4. Update frontend API endpoint configuration"
