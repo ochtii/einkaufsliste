@@ -63,9 +63,20 @@ jobs:
     - name: Create demo configuration
       if: matrix.node-version == '20.x'
       run: |
-        cd frontend/build
-        # Create demo configuration file
-        cat > demo-config.js << 'EOF'
+        cd frontend
+        
+        # Copy demo files to build directory
+        cp public/demo.html build/
+        cp public/demo-config.js build/ || echo "demo-config.js will be created"
+        
+        # Create app.html as the React app entry point
+        cp build/index.html build/app.html
+        
+        # Replace index.html with our landing page
+        cp public/index.html build/index.html
+        
+        # Ensure demo config is available in build directory
+        cat > build/demo-config.js << 'EOF'
         // Demo Configuration for GitHub Pages
         window.DEMO_CONFIG = {
           isDemoMode: true,
