@@ -19,20 +19,42 @@ export default function LoginForm({ onSwitchToRegister, registrationSuccess, onC
       const isDemoMode = window.location.hostname === 'ochtii.github.io' || 
                         (window.location.hostname === 'localhost' && window.location.search.includes('demo=true'));
       
-      if (isDemoMode && window.DemoAPI) {
-        // Use demo API for GitHub Pages
-        try {
-          const demoResult = window.DemoAPI.login(username, password);
-          login(demoResult.token, demoResult.user);
-          return;
-        } catch (demoError) {
-          setError('Ungültige Demo-Anmeldedaten. Verwende: demo/demo123 oder admin/admin123');
-          return;
+      console.log('Demo mode check:', {
+        hostname: window.location.hostname,
+        isDemoMode,
+        hasDemoAPI: !!window.DemoAPI,
+        hasDemoConfig: !!window.DEMO_CONFIG
+      });
+      
+      if (isDemoMode) {
+        // Wait a bit for demo config to load if not available yet
+        if (!window.DemoAPI && window.DEMO_CONFIG) {
+          console.log('DemoAPI not found, attempting manual initialization...');
+          // Try to trigger demo API initialization
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        if (window.DemoAPI) {
+          console.log('Using DemoAPI for authentication');
+          try {
+            const demoResult = window.DemoAPI.login(username, password);
+            console.log('Demo login successful:', demoResult);
+            login(demoResult.token, demoResult.user);
+            return;
+          } catch (demoError) {
+            console.error('Demo login failed:', demoError);
+            setError('Ungültige Demo-Anmeldedaten. Verwende: demo/demo123 oder admin/admin123');
+            return;
+          }
+        } else {
+          console.warn('DemoAPI not available, falling back to backend');
         }
       }
 
       // Regular backend login
       const backendUrl = isDemoMode ? 'https://einkaufsliste-demo-backend.onrender.com' : 'http://localhost:4000';
+      console.log('Attempting backend login to:', backendUrl);
+      
       const response = await fetch(`${backendUrl}/api/login`, {
         method: 'POST',
         headers: {

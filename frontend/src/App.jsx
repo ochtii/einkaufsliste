@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useDemoMode } from './hooks/useDemoMode';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ListManager from './components/ListManager';
@@ -418,18 +419,21 @@ export default function App() {
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { isDemoMode, demoReady } = useDemoMode();
 
   // Check if URL is admin route
   if (window.location.pathname === '/dJkL9mN2pQ7rS4tUvWxYz') {
     return <Admin />;
   }
 
-  if (loading) {
+  if (loading || (isDemoMode && !demoReady)) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-400">Lade Anwendung...</p>
+          <p className="text-gray-400">
+            {isDemoMode ? 'Lade Demo-Konfiguration...' : 'Lade Anwendung...'}
+          </p>
         </div>
       </div>
     );
