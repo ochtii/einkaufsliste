@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 
 const ProductManagement = ({ onClose }) => {
@@ -17,10 +17,6 @@ const ProductManagement = ({ onClose }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [emojiTarget, setEmojiTarget] = useState(null); // 'newArticle', 'newCategory', 'editingArticle', 'editingCategory'
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     await Promise.all([
       fetchStandardArticles(),
@@ -28,6 +24,10 @@ const ProductManagement = ({ onClose }) => {
     ]);
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchStandardArticles = async () => {
     try {
@@ -352,6 +352,9 @@ const ProductManagement = ({ onClose }) => {
         break;
       case 'editingCategory':
         setEditingCategory({...editingCategory, icon: emoji});
+        break;
+      default:
+        // No action needed for unknown targets
         break;
     }
     setShowEmojiPicker(false);

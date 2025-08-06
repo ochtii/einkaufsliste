@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as api from '../utils/api';
 
 export default function RegisterForm({ onSwitchToLogin, onRegistrationSuccess }) {
   const [username, setUsername] = useState('');
@@ -16,8 +17,7 @@ export default function RegisterForm({ onSwitchToLogin, onRegistrationSuccess })
 
   async function loadCaptcha() {
     try {
-      const response = await fetch('http://localhost:4000/api/captcha');
-      const data = await response.json();
+      const data = await api.fetchCaptcha();
       setCaptcha(data);
     } catch (error) {
       console.error('Error loading CAPTCHA:', error);
@@ -31,32 +31,19 @@ export default function RegisterForm({ onSwitchToLogin, onRegistrationSuccess })
     setError('');
 
     try {
-      const response = await fetch('http://localhost:4000/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-          confirmPassword,
-          captchaAnswer,
-          captchaExpected: captcha?.answer
-        }),
+      await api.registerUser({
+        username,
+        password,
+        confirmPassword,
+        captchaAnswer,
+        captchaExpected: captcha?.answer
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        onRegistrationSuccess();
-      } else {
-        setError(data.error || 'Registrierung fehlgeschlagen');
-        loadCaptcha(); // Reload CAPTCHA on error
-      }
+      
+      onRegistrationSuccess();
     } catch (error) {
       console.error('Registration error:', error);
-      setError('Verbindungsfehler. Versuche es später erneut.');
-      loadCaptcha();
+      setError(error.message || 'Registrierung fehlgeschlagen');
+      loadCaptcha(); // Reload CAPTCHA on error
     } finally {
       setLoading(false);
     }

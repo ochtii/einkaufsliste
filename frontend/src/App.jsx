@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { useDemoMode } from './hooks/useDemoMode';
 import * as api from './utils/api';
 import DemoHeader from './components/DemoHeader';
 import LoginForm from './components/LoginForm';

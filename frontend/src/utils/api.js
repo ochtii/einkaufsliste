@@ -266,3 +266,28 @@ export async function changeUsername(usernameData, token) {
   
   return await response.json();
 }
+
+// Registration API
+export async function fetchCaptcha() {
+  const response = await apiCall('/captcha');
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch captcha');
+  }
+  
+  return await response.json();
+}
+
+export async function registerUser(userData) {
+  const response = await apiCall('/register', {
+    method: 'POST',
+    body: JSON.stringify(userData)
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Registration failed');
+  }
+  
+  return await response.json();
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function DemoHeader() {
   const [demoConfig, setDemoConfig] = useState(null);

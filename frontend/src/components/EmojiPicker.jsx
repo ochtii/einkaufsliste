@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const EmojiPicker = ({ onSelect, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,9 +28,8 @@ const EmojiPicker = ({ onSelect, onClose }) => {
     ]
   };
 
-  const allEmojis = Object.values(emojiCategories).flat();
-  
   // TODO: Implement emoji search filtering
+  // const allEmojis = Object.values(emojiCategories).flat();
   // const filteredEmojis = searchTerm 
   //   ? allEmojis.filter(emoji => {
   //       return emoji.includes(searchTerm.toLowerCase());
