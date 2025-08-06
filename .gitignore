@@ -84,6 +84,7 @@ pids
 .fusebox/
 .dynamodb/
 .tern-port
+.vite/
 
 # =============================================================================
 # React Build Output / React Build-Ausgabe
