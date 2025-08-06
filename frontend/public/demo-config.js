@@ -152,7 +152,20 @@ if (window.DEMO_CONFIG.features.offlineMode) {
       if (user && (password === 'demo123' || password === 'admin123')) {
         this.storage.currentUser = user;
         this.save();
-        return { token: 'demo-jwt-token', user };
+        
+        // Generate a valid mock JWT token structure
+        const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+        const payload = btoa(JSON.stringify({ 
+          sub: user.uuid, 
+          username: user.username, 
+          role: user.role,
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+        }));
+        const signature = btoa('demo-signature'); // Mock signature
+        const mockJwtToken = `${header}.${payload}.${signature}`;
+        
+        return { token: mockJwtToken, user };
       }
       throw new Error('Invalid credentials');
     },
@@ -162,12 +175,56 @@ if (window.DEMO_CONFIG.features.offlineMode) {
       this.save();
     },
     
+    // Validate JWT token
+    validateToken(token) {
+      if (!token) return null;
+      
+      try {
+        // Split the token into parts
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        
+        // Decode the payload
+        const payload = JSON.parse(atob(parts[1]));
+        
+        // Check if token is expired
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+          return null;
+        }
+        
+        // Find user by UUID from token
+        const user = this.storage.users.find(u => u.uuid === payload.sub);
+        return user || null;
+      } catch (error) {
+        console.warn('Token validation failed:', error);
+        return null;
+      }
+    },
+    
     // Mock API endpoints
     async fetch(endpoint, options = {}) {
       await new Promise(resolve => setTimeout(resolve, 100)); // Simulate network delay
       
       const method = options.method || 'GET';
       const body = options.body ? JSON.parse(options.body) : null;
+      
+      // Check authentication for protected endpoints (except login)
+      if (!endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
+        const authHeader = options.headers?.Authorization || options.headers?.authorization;
+        const token = authHeader?.replace('Bearer ', '');
+        const validUser = this.validateToken(token);
+        
+        if (!validUser) {
+          return {
+            ok: false,
+            status: 401,
+            json: () => Promise.resolve({ error: 'Unauthorized' })
+          };
+        }
+        
+        // Update current user from token validation
+        this.storage.currentUser = validUser;
+      }
       
       // Handle different endpoints
       switch (true) {
