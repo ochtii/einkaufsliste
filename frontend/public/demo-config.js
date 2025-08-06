@@ -23,7 +23,7 @@ window.DEMO_CONFIG = {
     userManagement: isDemoMode ? false : true,
     adminPanel: isDemoMode ? false : true,
     realTimeSync: isDemoMode ? false : true,
-    offlineMode: isDemoMode ? true : false
+    offlineMode: true  // Always enable offline mode for GitHub Pages demo
   },
   
   // Demo credentials
@@ -110,7 +110,15 @@ window.DEMO_CONFIG = {
 };
 
 // Demo API Mock for offline mode
+console.log('Demo config initialization:', {
+  isDemoMode,
+  hostname: window.location.hostname,
+  offlineMode: window.DEMO_CONFIG.features.offlineMode,
+  shouldInitDemoAPI: isDemoMode && window.DEMO_CONFIG.features.offlineMode
+});
+
 if (isDemoMode && window.DEMO_CONFIG.features.offlineMode) {
+  console.log('Initializing DemoAPI...');
   window.DemoAPI = {
     // Mock local storage for demo data
     storage: {
@@ -190,6 +198,9 @@ if (isDemoMode && window.DEMO_CONFIG.features.offlineMode) {
       }
     }
   };
+  console.log('✅ DemoAPI successfully initialized!', window.DemoAPI);
+} else {
+  console.log('❌ DemoAPI not initialized:', { isDemoMode, offlineMode: window.DEMO_CONFIG?.features?.offlineMode });
 }
 
 // Export configuration
