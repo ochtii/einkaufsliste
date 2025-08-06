@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import * as api from '../utils/api';
 
 const BroadcastDisplay = () => {
   const { user, token } = useAuth();
@@ -9,19 +10,8 @@ const BroadcastDisplay = () => {
 
   const loadBroadcasts = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/broadcasts', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setBroadcasts(data);
-      } else {
-        const text = await response.text();
-        console.error('Failed to load broadcasts:', response.status, text);
-      }
+      const broadcasts = await api.fetchBroadcasts(token);
+      setBroadcasts(broadcasts);
     } catch (error) {
       console.error('Error loading broadcasts:', error);
     } finally {
@@ -37,22 +27,15 @@ const BroadcastDisplay = () => {
 
   const handleConfirmBroadcast = async (broadcastId) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/broadcasts/${broadcastId}/confirm`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const broadcast = broadcasts.find(b => b.id === broadcastId);
-        if (broadcast?.is_permanent) {
-          // For permanent broadcasts, mark as minimized
-          setMinimizedBroadcasts(prev => new Set([...prev, broadcastId]));
-        } else {
-          // For non-permanent broadcasts, remove completely
-          setBroadcasts(broadcasts.filter(b => b.id !== broadcastId));
-        }
+      await api.confirmBroadcast(broadcastId, token);
+      
+      const broadcast = broadcasts.find(b => b.id === broadcastId);
+      if (broadcast?.is_permanent) {
+        // For permanent broadcasts, mark as minimized
+        setMinimizedBroadcasts(prev => new Set([...prev, broadcastId]));
+      } else {
+        // For non-permanent broadcasts, remove completely
+        setBroadcasts(broadcasts.filter(b => b.id !== broadcastId));
       }
     } catch (error) {
       console.error('Error confirming broadcast:', error);

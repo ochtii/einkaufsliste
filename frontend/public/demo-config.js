@@ -8,107 +8,107 @@ const isDemoMode = window.location.hostname === 'ochtii.github.io' ||
 
 // Demo configuration
 window.DEMO_CONFIG = {
-  isDemoMode: isDemoMode,
-  lastUpdated: '__TIMESTAMP_PLACEHOLDER__',
-  buildTimestamp: __BUILD_TIMESTAMP_PLACEHOLDER__,
-  demoMessage: {
-    de: 'Dies ist eine Demo-Version der Einkaufsliste App',
-    en: 'This is a demo version of the Shopping List App'
-  },
-  
-  // Demo backend URL (when available)
-  backendUrl: isDemoMode ? 'https://einkaufsliste-demo-backend.onrender.com' : 'http://localhost:4000',
-  
-  // Feature flags for demo
-  features: {
-    registration: true,
-    userManagement: isDemoMode ? false : true,
-    adminPanel: isDemoMode ? false : true,
-    realTimeSync: isDemoMode ? false : true,
-    offlineMode: true  // Always enable offline mode for GitHub Pages demo
-  },
-  
-  // Demo credentials
-  demoCredentials: {
-    user: { username: 'demo', password: 'demo123' },
-    admin: { username: 'admin', password: 'admin123' }
-  },
-  
-  // Demo data for offline mode
-  demoData: {
-    users: [
-      {
-        id: 1,
-        uuid: 'demo-user-uuid',
-        username: 'demo',
-        email: 'demo@example.com',
-        role: 'user'
-      },
-      {
-        id: 2,
-        uuid: 'admin-user-uuid', 
-        username: 'admin',
-        email: 'admin@example.com',
-        role: 'admin'
-      }
-    ],
+    isDemoMode: isDemoMode,
+    lastUpdated: new Date().toISOString(),
+    buildTimestamp: new Date().toISOString(),
+    demoMessage: {
+        de: 'Dies ist eine Demo-Version der Einkaufsliste App',
+        en: 'This is a demo version of the Shopping List App'
+    },
     
-    categories: [
-      { id: 1, name: 'Obst & Gemüse', icon: '🍎', is_global: true },
-      { id: 2, name: 'Milchprodukte', icon: '🥛', is_global: true },
-      { id: 3, name: 'Fleisch & Fisch', icon: '🥩', is_global: true },
-      { id: 4, name: 'Brot & Backwaren', icon: '🍞', is_global: true },
-      { id: 5, name: 'Getränke', icon: '🥤', is_global: true },
-      { id: 6, name: 'Süßwaren', icon: '🍫', is_global: true },
-      { id: 7, name: 'Haushalt', icon: '🧽', is_global: true },
-      { id: 8, name: 'Sonstiges', icon: '📦', is_global: true }
-    ],
+    // Demo backend URL (when available)
+    backendUrl: isDemoMode ? 'https://einkaufsliste-demo-backend.onrender.com' : 'http://localhost:4000',
     
-    standardArticles: [
-      { id: 1, name: 'Äpfel', category: 'Obst & Gemüse', icon: '🍎', is_global: true },
-      { id: 2, name: 'Bananen', category: 'Obst & Gemüse', icon: '🍌', is_global: true },
-      { id: 3, name: 'Milch', category: 'Milchprodukte', icon: '🥛', is_global: true },
-      { id: 4, name: 'Käse', category: 'Milchprodukte', icon: '🧀', is_global: true },
-      { id: 5, name: 'Brot', category: 'Brot & Backwaren', icon: '🍞', is_global: true },
-      { id: 6, name: 'Butter', category: 'Milchprodukte', icon: '🧈', is_global: true },
-      { id: 7, name: 'Wasser', category: 'Getränke', icon: '💧', is_global: true },
-      { id: 8, name: 'Kaffee', category: 'Getränke', icon: '☕', is_global: true },
-      { id: 9, name: 'Tomaten', category: 'Obst & Gemüse', icon: '🍅', is_global: true },
-      { id: 10, name: 'Nudeln', category: 'Sonstiges', icon: '🍝', is_global: true }
-    ],
+    // Feature flags for demo
+    features: {
+        registration: true,
+        userManagement: isDemoMode ? false : true,
+        adminPanel: isDemoMode ? false : true,
+        realTimeSync: isDemoMode ? false : true,
+        offlineMode: true  // Always enable offline mode for GitHub Pages demo
+    },
     
-    sampleLists: [
-      {
-        id: 1,
-        uuid: 'sample-list-1',
-        name: 'Wocheneinkauf',
-        user_id: 1,
-        articles: [
-          { id: 1, name: 'Milch', category: 'Milchprodukte', icon: '🥛', is_bought: false },
-          { id: 2, name: 'Brot', category: 'Brot & Backwaren', icon: '🍞', is_bought: true },
-          { id: 3, name: 'Äpfel', category: 'Obst & Gemüse', icon: '🍎', is_bought: false },
-          { id: 4, name: 'Käse', category: 'Milchprodukte', icon: '🧀', is_bought: false }
+    // Demo credentials
+    demoCredentials: {
+        user: { username: 'demo', password: 'demo123' },
+        admin: { username: 'admin', password: 'admin123' }
+    },
+    
+    // Demo data for offline mode
+    demoData: {
+        users: [
+            {
+                id: 1,
+                uuid: 'demo-user-uuid',
+                username: 'demo',
+                email: 'demo@example.com',
+                role: 'user'
+            },
+            {
+                id: 2,
+                uuid: 'admin-user-uuid', 
+                username: 'admin',
+                email: 'admin@example.com',
+                role: 'admin'
+            }
+        ],
+        
+        categories: [
+            { id: 1, name: 'Obst & Gemüse', icon: '🍎', is_global: true },
+            { id: 2, name: 'Milchprodukte', icon: '🥛', is_global: true },
+            { id: 3, name: 'Fleisch & Fisch', icon: '🥩', is_global: true },
+            { id: 4, name: 'Brot & Backwaren', icon: '🍞', is_global: true },
+            { id: 5, name: 'Getränke', icon: '🥤', is_global: true },
+            { id: 6, name: 'Süßwaren', icon: '🍫', is_global: true },
+            { id: 7, name: 'Haushalt', icon: '🧽', is_global: true },
+            { id: 8, name: 'Sonstiges', icon: '📦', is_global: true }
+        ],
+        
+        standardArticles: [
+            { id: 1, name: 'Äpfel', category: 'Obst & Gemüse', icon: '🍎', is_global: true },
+            { id: 2, name: 'Bananen', category: 'Obst & Gemüse', icon: '🍌', is_global: true },
+            { id: 3, name: 'Milch', category: 'Milchprodukte', icon: '🥛', is_global: true },
+            { id: 4, name: 'Käse', category: 'Milchprodukte', icon: '🧀', is_global: true },
+            { id: 5, name: 'Brot', category: 'Brot & Backwaren', icon: '🍞', is_global: true },
+            { id: 6, name: 'Butter', category: 'Milchprodukte', icon: '🧈', is_global: true },
+            { id: 7, name: 'Wasser', category: 'Getränke', icon: '💧', is_global: true },
+            { id: 8, name: 'Kaffee', category: 'Getränke', icon: '☕', is_global: true },
+            { id: 9, name: 'Tomaten', category: 'Obst & Gemüse', icon: '🍅', is_global: true },
+            { id: 10, name: 'Nudeln', category: 'Sonstiges', icon: '🍝', is_global: true }
+        ],
+        
+        sampleLists: [
+            {
+                id: 1,
+                uuid: 'sample-list-1',
+                name: 'Wocheneinkauf',
+                user_id: 1,
+                articles: [
+                    { id: 1, name: 'Milch', category: 'Milchprodukte', icon: '🥛', is_bought: false },
+                    { id: 2, name: 'Brot', category: 'Brot & Backwaren', icon: '🍞', is_bought: true },
+                    { id: 3, name: 'Äpfel', category: 'Obst & Gemüse', icon: '🍎', is_bought: false },
+                    { id: 4, name: 'Käse', category: 'Milchprodukte', icon: '🧀', is_bought: false }
+                ]
+            },
+            {
+                id: 2,
+                uuid: 'sample-list-2',
+                name: 'Party-Einkauf',
+                user_id: 1,
+                articles: [
+                    { id: 5, name: 'Chips', category: 'Süßwaren', icon: '🍿', is_bought: false },
+                    { id: 6, name: 'Cola', category: 'Getränke', icon: '🥤', is_bought: false },
+                    { id: 7, name: 'Pizza', category: 'Sonstiges', icon: '🍕', is_bought: true }
+                ]
+            }
+        ],
+        
+        favorites: [
+            { name: 'Milch', category: 'Milchprodukte' },
+            { name: 'Brot', category: 'Brot & Backwaren' },
+            { name: 'Äpfel', category: 'Obst & Gemüse' }
         ]
-      },
-      {
-        id: 2,
-        uuid: 'sample-list-2',
-        name: 'Party-Einkauf',
-        user_id: 1,
-        articles: [
-          { id: 5, name: 'Chips', category: 'Süßwaren', icon: '🍿', is_bought: false },
-          { id: 6, name: 'Cola', category: 'Getränke', icon: '🥤', is_bought: false },
-          { id: 7, name: 'Pizza', category: 'Sonstiges', icon: '🍕', is_bought: true }
-        ]
-      }
-    ],
-    
-    favorites: [
-      { name: 'Milch', category: 'Milchprodukte' },
-      { name: 'Brot', category: 'Brot & Backwaren' },
-      { name: 'Äpfel', category: 'Obst & Gemüse' }
-    ]
-  }
+    }
 };
 
 // Demo API Mock for offline mode

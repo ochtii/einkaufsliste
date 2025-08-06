@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
+import * as api from '../utils/api';
 
 export default function ArticleForm({ onAdded, currentList, token }) {
   const [name, setName] = useState('');
@@ -50,16 +51,8 @@ export default function ArticleForm({ onAdded, currentList, token }) {
 
   async function loadArticleHistory() {
     try {
-      const response = await fetch('http://localhost:4000/api/articles/history', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setArticleHistory(data);
-      }
+      const data = await api.fetchArticleHistory(token);
+      setArticleHistory(data);
     } catch (error) {
       console.error('Error loading article history:', error);
     }
@@ -67,16 +60,8 @@ export default function ArticleForm({ onAdded, currentList, token }) {
 
   async function loadStandardArticles() {
     try {
-      const response = await fetch('http://localhost:4000/api/standard-articles', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setStandardArticles(data);
-      }
+      const data = await api.fetchStandardArticles(token);
+      setStandardArticles(data);
     } catch (error) {
       console.error('Error loading standard articles:', error);
     }
@@ -84,16 +69,8 @@ export default function ArticleForm({ onAdded, currentList, token }) {
 
   async function loadFavorites() {
     try {
-      const response = await fetch('http://localhost:4000/api/favorites', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setFavorites(data);
-      }
+      const data = await api.fetchFavorites(token);
+      setFavorites(data);
     } catch (error) {
       console.error('Error loading favorites:', error);
     }
@@ -101,16 +78,8 @@ export default function ArticleForm({ onAdded, currentList, token }) {
 
   async function loadCategories() {
     try {
-      const response = await fetch('http://localhost:4000/api/categories', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-      }
+      const data = await api.fetchCategories(token);
+      setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
     }
@@ -126,23 +95,12 @@ export default function ArticleForm({ onAdded, currentList, token }) {
       const articleIcon = null; // Let backend handle icon selection
       const data = { name: name.trim(), category, icon: articleIcon, comment: comment.trim() };
       
-      const response = await fetch(`http://localhost:4000/api/lists/${currentList.id}/articles`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      });
-
-      if (response.ok) {
-        onAdded();
-        loadArticleHistory(); // Refresh history
-        setName(''); 
-        setComment('');
-      } else {
-        console.error('Error creating article');
-      }
+      await api.createArticle(currentList.id, data, token);
+      
+      onAdded();
+      loadArticleHistory(); // Refresh history
+      setName(''); 
+      setComment('');
     } catch (err) {
       console.error('Error creating article:', err);
     } finally {

@@ -188,6 +188,19 @@ export async function fetchStandardArticles(token) {
   return await response.json();
 }
 
+export async function fetchArticleHistory(token) {
+  const response = await apiCall('/articles/history', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  
+  if (!response.ok) {
+    // Don't throw error for history, just return empty array
+    return [];
+  }
+  
+  return await response.json();
+}
+
 // Broadcasts API (for admin messages)
 export async function fetchBroadcasts(token) {
   const response = await apiCall('/broadcasts', {
@@ -200,4 +213,13 @@ export async function fetchBroadcasts(token) {
   }
   
   return await response.json();
+}
+
+export async function confirmBroadcast(broadcastId, token) {
+  const response = await apiCall(`/broadcasts/${broadcastId}/confirm`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  
+  return response.ok;
 }
