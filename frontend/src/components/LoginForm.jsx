@@ -27,35 +27,37 @@ export default function LoginForm({ onSwitchToRegister, registrationSuccess, onC
       });
       
       if (isDemoMode) {
-        // Wait a bit for demo config to load if not available yet
-        if (!window.DemoAPI && window.DEMO_CONFIG) {
-          console.log('DemoAPI not found, attempting manual initialization...');
-          // Try to trigger demo API initialization
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        
-        if (window.DemoAPI) {
-          console.log('Using DemoAPI for authentication');
-          try {
-            const demoResult = window.DemoAPI.login(username, password);
-            console.log('Demo login successful:', demoResult);
-            login(demoResult.token, demoResult.user);
-            return;
-          } catch (demoError) {
-            console.error('Demo login failed:', demoError);
-            setError('Ungültige Demo-Anmeldedaten. Verwende: demo/demo123 oder admin/admin123');
+        // In demo mode, ONLY use DemoAPI - never fall back to backend
+        if (!window.DemoAPI) {
+          // Try to initialize DemoAPI if DEMO_CONFIG exists
+          if (window.DEMO_CONFIG && window.DEMO_CONFIG.features.offlineMode) {
+            console.log('Attempting to initialize DemoAPI manually...');
+            // Wait a bit and try again
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+          
+          if (!window.DemoAPI) {
+            setError('Demo-Modus ist noch nicht bereit. Bitte warten Sie einen Moment und versuchen Sie es erneut.');
             return;
           }
-        } else {
-          console.warn('DemoAPI not available, falling back to backend');
+        }
+        
+        console.log('Using DemoAPI for authentication');
+        try {
+          const demoResult = window.DemoAPI.login(username, password);
+          console.log('Demo login successful:', demoResult);
+          login(demoResult.token, demoResult.user);
+          return;
+        } catch (demoError) {
+          console.error('Demo login failed:', demoError);
+          setError('Ungültige Demo-Anmeldedaten. Verwende: demo/demo123 oder admin/admin123');
+          return;
         }
       }
 
-      // Regular backend login
-      const backendUrl = isDemoMode ? 'https://einkaufsliste-demo-backend.onrender.com' : 'http://localhost:4000';
-      console.log('Attempting backend login to:', backendUrl);
-      
-      const response = await fetch(`${backendUrl}/api/login`, {
+      // Regular backend login (only for non-demo mode)
+      console.log('Attempting regular backend login');
+      const response = await fetch('http://localhost:4000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

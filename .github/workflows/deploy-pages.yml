@@ -77,15 +77,22 @@ jobs:
           echo "demo.html not found, will be created inline"
         fi
         
+        # Copy the complete demo-config.js (don't overwrite!)
         if [ -f "public/demo-config.js" ]; then
+          echo "Copying complete demo-config.js with DemoAPI"
           cp public/demo-config.js build/
         else
-          echo "demo-config.js not found, will be created inline"
+          echo "ERROR: demo-config.js not found in public folder!"
+          exit 1
         fi
         
-        # Create app.html as the React app entry point
+        # Create app.html as the React app entry point and inject demo config
         if [ -f "build/index.html" ]; then
+          # Copy the built React app
           cp build/index.html build/app.html
+          
+          # Inject demo-config.js script into app.html before the React scripts
+          sed -i 's|</body>|  <script src="demo-config.js"></script>\n</body>|' build/app.html
         else
           echo "Warning: build/index.html not found"
         fi
@@ -97,31 +104,14 @@ jobs:
           echo "Warning: public/landing.html not found"
         fi
         
-        # Ensure demo config is available in build directory
-        cat > build/demo-config.js << 'EOF'
-        // Demo Configuration for GitHub Pages
-        window.DEMO_CONFIG = {
-          isDemoMode: true,
-          demoMessage: 'Dies ist eine Demo-Version der Einkaufsliste App',
-          backendUrl: 'https://einkaufsliste-backend-demo.herokuapp.com',
-          features: {
-            registration: true,
-            userManagement: false,
-            adminPanel: false,
-            realTimeSync: false
-          },
-          demoData: {
-            users: [
-              { username: 'demo', password: 'demo123', role: 'user' },
-              { username: 'admin', password: 'admin123', role: 'admin' }
-            ],
-            sampleLists: [
-              { name: 'Wocheneinkauf', items: ['Milch', 'Brot', 'Äpfel'] },
-              { name: 'Party-Einkauf', items: ['Chips', 'Getränke', 'Pizza'] }
-            ]
-          }
-        };
-        EOF
+        # Verify demo-config.js was copied successfully
+        if [ -f "build/demo-config.js" ]; then
+          echo "✅ Demo config successfully copied with DemoAPI"
+          head -n 5 build/demo-config.js
+        else
+          echo "❌ ERROR: demo-config.js not found in build directory!"
+          exit 1
+        fi
         
         # Create demo instructions
         cat > demo-instructions.html << 'EOF'
