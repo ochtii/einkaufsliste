@@ -10,6 +10,7 @@ import FavoriteList from './components/FavoriteList';
 import UserSettings from './components/UserSettings';
 import ProductManagement from './components/ProductManagement';
 import Admin from './components/Admin';
+import RegularAdminDashboard from './components/RegularAdminDashboard';
 import BroadcastDisplay from './components/BroadcastDisplay';
 
 function MainApp() {
@@ -23,6 +24,7 @@ function MainApp() {
   const [showSettings, setShowSettings] = useState(false);
   const [showProductManagement, setShowProductManagement] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const loadArticles = useCallback(async () => {
     if (!currentList) return;
@@ -135,6 +137,15 @@ function MainApp() {
             <p className="text-gray-400">Willkommen, {user?.username}!</p>
           </div>
           <div className="flex items-center space-x-3">
+            {user?.isAdmin && (
+              <button
+                onClick={() => setShowAdminPanel(!showAdminPanel)}
+                className="btn-secondary"
+                title="Admin Panel"
+              >
+                👑
+              </button>
+            )}
             <button
               onClick={() => setShowProductManagement(!showProductManagement)}
               className="btn-secondary"
@@ -316,6 +327,26 @@ function MainApp() {
       {/* Product Management Modal */}
       {showProductManagement && (
         <ProductManagement onClose={() => setShowProductManagement(false)} />
+      )}
+      
+      {/* Admin Panel Modal */}
+      {showAdminPanel && user?.isAdmin && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-900 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-700">
+              <h2 className="text-2xl font-bold text-white">👑 Admin Panel</h2>
+              <button
+                onClick={() => setShowAdminPanel(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <RegularAdminDashboard />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

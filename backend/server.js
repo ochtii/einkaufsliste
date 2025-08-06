@@ -14,16 +14,28 @@ async function initDb() {
     driver: sqlite3.Database
   });
   
-  // Users table with unique UUID
+  // Users table (compatible with existing databases)
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      uuid TEXT UNIQUE NOT NULL,
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+  
+  // Add missing columns if they don't exist (for existing databases)
+  try {
+    await db.exec(`ALTER TABLE users ADD COLUMN uuid TEXT;`);
+  } catch (error) {
+    // Column already exists, ignore error
+  }
+  
+  try {
+    await db.exec(`ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0;`);
+  } catch (error) {
+    // Column already exists, ignore error
+  }
   
   // Shopping lists table
   await db.exec(`
@@ -202,6 +214,22 @@ async function initDb() {
     }
   } catch (error) {
     console.log('UUID migration completed or not needed');
+  }
+  
+  // Create default admin user if not exists
+  try {
+    const adminUser = await db.get('SELECT id FROM users WHERE username = ? AND is_admin = 1', 'admin');
+    if (!adminUser) {
+      const adminPassword = await bcrypt.hash('admin123', 10);
+      const adminUuid = crypto.randomUUID();
+      await db.run(
+        'INSERT OR REPLACE INTO users (uuid, username, password_hash, is_admin) VALUES (?, ?, ?, 1)',
+        adminUuid, 'admin', adminPassword
+      );
+      console.log('Default admin user created: admin/admin123');
+    }
+  } catch (error) {
+    console.log('Admin user creation failed:', error.message);
   }
   
   return db;
@@ -413,7 +441,7 @@ async function main() {
 
       // Generate JWT
       const token = jwt.sign(
-        { userId: user.id, username: user.username },
+        { userId: user.id, username: user.username, isAdmin: user.is_admin },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -422,7 +450,8 @@ async function main() {
         token,
         user: {
           id: user.id,
-          username: user.username
+          username: user.username,
+          isAdmin: user.is_admin
         }
       });
     } catch (error) {
@@ -435,7 +464,7 @@ async function main() {
   app.get('/api/user/profile', authenticateTokenWithBlacklist, async (req, res) => {
     try {
       const user = await db.get(
-        'SELECT id, uuid, username, created_at FROM users WHERE id = ?',
+        'SELECT id, uuid, username, is_admin, created_at FROM users WHERE id = ?',
         req.user.userId
       );
       
@@ -447,6 +476,7 @@ async function main() {
         id: user.id,
         uuid: user.uuid,
         username: user.username,
+        isAdmin: user.is_admin,
         created_at: user.created_at
       });
     } catch (error) {
@@ -963,6 +993,75 @@ async function main() {
     }
   });
 
+  // Regular Admin Routes (JWT-based authentication)
+  
+  // Admin authentication middleware
+  const authenticateAdmin = (req, res, next) => {
+    authenticateTokenWithBlacklist(req, res, (err) => {
+      if (err) return;
+      
+      // Check if user is admin
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ error: 'Admin-Berechtigung erforderlich' });
+      }
+      
+      next();
+    });
+  };
+
+  // Get all users (admin only)
+  app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
+    try {
+      const users = await db.all(`
+        SELECT 
+          id,
+          uuid,
+          username,
+          is_admin,
+          created_at
+        FROM users 
+        ORDER BY created_at DESC
+      `);
+      
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Fehler beim Laden der Benutzer' });
+    }
+  });
+
+  // Toggle admin status
+  app.post('/api/admin/toggle-admin', authenticateAdmin, async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'Benutzer-ID erforderlich' });
+      }
+
+      // Get current user status
+      const user = await db.get('SELECT is_admin FROM users WHERE id = ?', userId);
+      if (!user) {
+        return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+      }
+
+      // Toggle admin status
+      const newAdminStatus = user.is_admin ? 0 : 1;
+      await db.run('UPDATE users SET is_admin = ? WHERE id = ?', newAdminStatus, userId);
+
+      res.json({ 
+        success: true, 
+        message: `Benutzer ${newAdminStatus ? 'zum Admin ernannt' : 'Admin-Status entfernt'}`,
+        isAdmin: Boolean(newAdminStatus)
+      });
+    } catch (error) {
+      console.error('Error toggling admin status:', error);
+      res.status(500).json({ error: 'Fehler beim Ändern des Admin-Status' });
+    }
+  });
+
+  // Demo Admin Routes (Password-based authentication)
+
   // Admin middleware
   const adminAuth = (req, res, next) => {
     const { password } = req.body || req.query;
@@ -986,6 +1085,7 @@ async function main() {
         SELECT 
           u.id, 
           u.username, 
+          u.is_admin,
           u.created_at,
           COUNT(DISTINCT sl.id) as list_count,
           COUNT(DISTINCT a.id) as article_count,
@@ -994,7 +1094,7 @@ async function main() {
         LEFT JOIN shopping_lists sl ON u.id = sl.user_id
         LEFT JOIN articles a ON u.id = a.user_id
         LEFT JOIN favorites f ON u.id = f.user_id
-        GROUP BY u.id, u.username, u.created_at
+        GROUP BY u.id, u.username, u.is_admin, u.created_at
         ORDER BY u.created_at DESC
       `);
       
@@ -1041,6 +1141,41 @@ async function main() {
     } catch (error) {
       console.error('Error deleting user:', error);
       res.status(500).json({ error: 'Fehler beim Löschen des Benutzers' });
+    }
+  });
+
+  // Toggle user admin status (admin only)
+  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/users/:userId/toggle-admin', adminAuth, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'Benutzer-ID ist erforderlich' });
+      }
+      
+      // Get current admin status
+      const user = await db.get('SELECT id, username, is_admin FROM users WHERE id = ?', userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+      }
+      
+      // Toggle admin status
+      const newAdminStatus = user.is_admin ? 0 : 1;
+      
+      await db.run('UPDATE users SET is_admin = ? WHERE id = ?', newAdminStatus, userId);
+      
+      res.json({ 
+        message: `Benutzer ${user.username} wurde ${newAdminStatus ? 'zum Admin ernannt' : 'als Admin entfernt'}`,
+        user: {
+          id: user.id,
+          username: user.username,
+          is_admin: newAdminStatus
+        }
+      });
+    } catch (error) {
+      console.error('Error toggling admin status:', error);
+      res.status(500).json({ error: 'Fehler beim Ändern des Admin-Status' });
     }
   });
 

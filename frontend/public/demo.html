@@ -24,6 +24,10 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        html {
+            scroll-behavior: smooth;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             line-height: 1.6;
@@ -151,11 +155,72 @@
             font-size: 0.9rem;
         }
         
+        /* Navigation Styles */
+        .navigation {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .nav-divider {
+            color: rgba(255,255,255,0.5);
+            margin: 0 10px;
+        }
+        
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #4f46e5;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .back-to-top:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+        }
+        
         .action-buttons {
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin: 40px 0;
+            margin: 30px 0;
             flex-wrap: wrap;
         }
         
@@ -445,13 +510,36 @@
             <p>Moderne Shopping List Application mit React & Node.js</p>
         </header>
         
+        <!-- Navigation -->
+        <nav class="navigation">
+            <div class="nav-links">
+                <a href="#demo" class="nav-link">🚀 Demo starten</a>
+                <span class="nav-divider">|</span>
+                <a href="#credentials" class="nav-link">🔑 Anmeldedaten</a>
+                <span class="nav-divider">|</span>
+                <a href="#features" class="nav-link">✨ Features</a>
+                <span class="nav-divider">|</span>
+                <a href="#usage" class="nav-link">📖 Anleitung</a>
+                <span class="nav-divider">|</span>
+                <a href="#faq" class="nav-link">❓ FAQ</a>
+                <span class="nav-divider">|</span>
+                <a href="#tech" class="nav-link">🛠️ Tech Stack</a>
+            </div>
+        </nav>
+        
+        <!-- Action Buttons at the top -->
+        <div class="action-buttons" id="demo">
+            <a href="./index.html" class="btn btn-primary">🚀 Demo starten</a>
+            <a href="https://github.com/ochtii/einkaufsliste" class="btn btn-secondary">📚 Code ansehen</a>
+        </div>
+        
         <div class="demo-banner">
             <h2>🎯 Live Demo verfügbar!</h2>
             <p>Testen Sie alle Features der Einkaufsliste-Anwendung direkt in Ihrem Browser</p>
         </div>
         
         <div class="main-content">
-            <section class="credentials-section">
+            <section class="credentials-section" id="credentials">
                 <h2>🔑 Demo-Anmeldedaten</h2>
                 
                 <div class="credential-card">
@@ -471,7 +559,7 @@
                 </p>
             </section>
             
-            <section class="features-section">
+            <section class="features-section" id="features">
                 <h2>✨ Hauptfunktionen</h2>
                 
                 <div class="feature-grid">
@@ -515,7 +603,7 @@
         </div>
         
         <!-- Usage Guide Section -->
-        <section class="usage-guide">
+        <section class="usage-guide" id="usage">
             <h2>📚 Anleitung zur Verwendung</h2>
             
             <div class="guide-steps">
@@ -575,7 +663,7 @@
         </section>
         
         <!-- FAQ Section -->
-        <section class="faq-section">
+        <section class="faq-section" id="faq">
             <h2>❓ Häufig gestellte Fragen (FAQ)</h2>
             
             <div class="faq-container">
@@ -661,12 +749,7 @@
             </div>
         </section>
 
-        <div class="action-buttons">
-            <a href="./index.html" class="btn btn-primary">🚀 Demo starten</a>
-            <a href="https://github.com/ochtii/einkaufsliste" class="btn btn-secondary">📚 Code ansehen</a>
-        </div>
-        
-        <section class="tech-stack">
+        <section class="tech-stack" id="tech">
             <h2>🛠️ Technologie-Stack</h2>
             <div class="tech-grid">
                 <div class="tech-item">
@@ -775,5 +858,8 @@
             });
         });
     </script>
+    
+    <!-- Back to top button -->
+    <a href="#" class="back-to-top">↑</a>
 </body>
 </html>

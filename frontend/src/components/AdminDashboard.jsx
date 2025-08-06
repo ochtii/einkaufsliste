@@ -130,6 +130,31 @@ const AdminDashboard = () => {
     }
   };
 
+  const toggleAdminStatus = async (userId, currentStatus, username) => {
+    const action = currentStatus ? 'entfernen' : 'ernennen';
+    if (!window.confirm(`${username} wirklich als Admin ${action}?`)) return;
+    
+    try {
+      const response = await fetch(`/api/dJkL9mN2pQ7rS4tUvWxYz/users/${userId}/toggle-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      
+      if (response.ok) {
+        await loadData();
+        const result = await response.json();
+        // Optional: Show success message
+        setError(`✓ ${result.message}`);
+        setTimeout(() => setError(''), 3000);
+      } else {
+        setError('Fehler beim Ändern des Admin-Status');
+      }
+    } catch (err) {
+      setError('Verbindungsfehler');
+    }
+  };
+
   const toggleBroadcast = async (broadcastId) => {
     try {
       const response = await fetch(`/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/${broadcastId}/toggle`, {
@@ -412,7 +437,14 @@ const AdminDashboard = () => {
               {users.map(user => (
                 <div key={user.id} className="flex justify-between items-center p-3 bg-gray-700 rounded border border-gray-600">
                   <div>
-                    <p className="font-medium text-white">{user.username}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-white">{user.username}</p>
+                      {user.is_admin && (
+                        <span className="px-2 py-1 text-xs bg-blue-600 text-white rounded font-medium">
+                          👑 Admin
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-300">
                       {user.list_count} Listen, {user.article_count} Artikel, {user.favorite_count} Favoriten
                     </p>
@@ -420,12 +452,24 @@ const AdminDashboard = () => {
                       Registriert: {new Date(user.created_at).toLocaleDateString('de-DE')}
                     </p>
                   </div>
-                  <button
-                    onClick={() => deleteUser(user.id)}
-                    className="text-red-400 hover:text-red-300 px-3 py-1 text-sm border border-red-600 rounded hover:bg-red-900/20 transition-colors"
-                  >
-                    Löschen
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => toggleAdminStatus(user.id, user.is_admin, user.username)}
+                      className={`px-3 py-1 text-sm border rounded hover:bg-opacity-20 transition-colors ${
+                        user.is_admin 
+                          ? 'text-yellow-400 border-yellow-600 hover:bg-yellow-900' 
+                          : 'text-blue-400 border-blue-600 hover:bg-blue-900'
+                      }`}
+                    >
+                      {user.is_admin ? '👑 Admin entfernen' : '👑 Admin ernennen'}
+                    </button>
+                    <button
+                      onClick={() => deleteUser(user.id)}
+                      className="text-red-400 hover:text-red-300 px-3 py-1 text-sm border border-red-600 rounded hover:bg-red-900/20 transition-colors"
+                    >
+                      Löschen
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
