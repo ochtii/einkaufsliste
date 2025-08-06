@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import * as api from '../utils/api';
 
 export default function UserSettings({ onClose }) {
   const { user, token, logout } = useAuth();
@@ -27,16 +28,8 @@ export default function UserSettings({ onClose }) {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const response = await fetch('http://localhost:4000/api/user/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setUserProfile(data);
-        }
+        const data = await api.fetchUserProfile(token);
+        setUserProfile(data);
       } catch (error) {
         console.error('Error loading profile:', error);
       } finally {
@@ -65,30 +58,17 @@ export default function UserSettings({ onClose }) {
     setPasswordSuccess('');
 
     try {
-      const response = await fetch('http://localhost:4000/api/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setPasswordSuccess('Passwort erfolgreich geändert');
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-      } else {
-        setPasswordError(data.error || 'Fehler beim Ändern des Passworts');
-      }
+      await api.changePassword({
+        currentPassword,
+        newPassword
+      }, token);
+      
+      setPasswordSuccess('Passwort erfolgreich geändert');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     } catch (error) {
-      setPasswordError('Verbindungsfehler');
+      setPasswordError(error.message || 'Fehler beim Ändern des Passworts');
     } finally {
       setPasswordLoading(false);
     }
@@ -107,31 +87,18 @@ export default function UserSettings({ onClose }) {
     setUsernameSuccess('');
 
     try {
-      const response = await fetch('http://localhost:4000/api/change-username', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          newUsername: newUsername.trim()
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUsernameSuccess('Benutzername erfolgreich geändert. Bitte melde dich erneut an.');
-        setNewUsername('');
-        // Force logout to refresh token with new username
-        setTimeout(() => {
-          logout();
-        }, 2000);
-      } else {
-        setUsernameError(data.error || 'Fehler beim Ändern des Benutzernamens');
-      }
+      await api.changeUsername({
+        newUsername: newUsername.trim()
+      }, token);
+      
+      setUsernameSuccess('Benutzername erfolgreich geändert. Bitte melde dich erneut an.');
+      setNewUsername('');
+      // Force logout to refresh token with new username
+      setTimeout(() => {
+        logout();
+      }, 2000);
     } catch (error) {
-      setUsernameError('Verbindungsfehler');
+      setUsernameError(error.message || 'Fehler beim Ändern des Benutzernamens');
     } finally {
       setUsernameLoading(false);
     }

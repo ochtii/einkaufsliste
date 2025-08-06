@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDemoMode } from './hooks/useDemoMode';
 import * as api from './utils/api';
+import DemoHeader from './components/DemoHeader';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ListManager from './components/ListManager';
@@ -123,6 +124,7 @@ function MainApp() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
+      <DemoHeader />
       <div className="container mx-auto px-4 py-8">
         {/* Broadcasts */}
         <BroadcastDisplay />

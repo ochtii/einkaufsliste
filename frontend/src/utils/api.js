@@ -223,3 +223,46 @@ export async function confirmBroadcast(broadcastId, token) {
   
   return response.ok;
 }
+
+// User Profile API
+export async function fetchUserProfile(token) {
+  const response = await apiCall('/user/profile', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch user profile');
+  }
+  
+  return await response.json();
+}
+
+export async function changePassword(passwordData, token) {
+  const response = await apiCall('/change-password', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(passwordData)
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to change password');
+  }
+  
+  return await response.json();
+}
+
+export async function changeUsername(usernameData, token) {
+  const response = await apiCall('/change-username', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(usernameData)
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to change username');
+  }
+  
+  return await response.json();
+}
