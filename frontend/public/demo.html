@@ -245,6 +245,190 @@
             text-decoration: underline;
         }
         
+        /* Usage Guide Styles */
+        .usage-guide {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .usage-guide h2 {
+            color: #4f46e5;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2rem;
+        }
+        
+        .guide-steps {
+            display: grid;
+            gap: 25px;
+        }
+        
+        .step-card {
+            display: flex;
+            align-items: flex-start;
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid #3b82f6;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .step-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+        }
+        
+        .step-number {
+            background: #3b82f6;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        
+        .step-content h3 {
+            color: #1e293b;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+        
+        .step-content p {
+            color: #64748b;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .step-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .step-content li {
+            color: #64748b;
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .step-content li:before {
+            content: "→";
+            color: #3b82f6;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        
+        .step-content code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #1e293b;
+        }
+        
+        /* FAQ Styles */
+        .faq-section {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .faq-section h2 {
+            color: #4f46e5;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2rem;
+        }
+        
+        .faq-container {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .faq-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+        
+        .faq-question {
+            background: #f8fafc;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+        
+        .faq-question:hover {
+            background: #e2e8f0;
+        }
+        
+        .faq-question h3 {
+            color: #1e293b;
+            margin: 0;
+            font-size: 1.1rem;
+            flex: 1;
+        }
+        
+        .faq-toggle {
+            color: #3b82f6;
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+            margin-left: 15px;
+        }
+        
+        .faq-item.active .faq-toggle {
+            transform: rotate(45deg);
+        }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            background: white;
+        }
+        
+        .faq-item.active .faq-answer {
+            max-height: 200px;
+            padding: 20px;
+        }
+        
+        .faq-answer p {
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        .faq-answer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        
+        .faq-answer a:hover {
+            text-decoration: underline;
+        }
+        
         @media (max-width: 768px) {
             .demo-header h1 { font-size: 2.5rem; }
             .demo-header p { font-size: 1.1rem; }
@@ -330,6 +514,153 @@
             </section>
         </div>
         
+        <!-- Usage Guide Section -->
+        <section class="usage-guide">
+            <h2>📚 Anleitung zur Verwendung</h2>
+            
+            <div class="guide-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>🚀 Demo starten</h3>
+                        <p>Klicken Sie auf "Demo starten" und melden Sie sich mit den Demo-Anmeldedaten an:</p>
+                        <ul>
+                            <li><strong>Benutzer:</strong> <code>demo</code> / <code>demo123</code></li>
+                            <li><strong>Admin:</strong> <code>admin</code> / <code>admin123</code></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>📝 Erste Liste erstellen</h3>
+                        <p>Nach der Anmeldung:</p>
+                        <ul>
+                            <li>Klicken Sie auf "+ Neue Liste"</li>
+                            <li>Geben Sie einen Namen ein (z.B. "Wocheneinkauf")</li>
+                            <li>Bestätigen Sie mit Enter oder dem ✓ Button</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>🛒 Artikel hinzufügen</h3>
+                        <p>In Ihrer Liste:</p>
+                        <ul>
+                            <li>Tippen Sie Artikel in das Eingabefeld (z.B. "Milch")</li>
+                            <li>Wählen Sie eine Kategorie aus dem Dropdown</li>
+                            <li>Nutzen Sie ⭐ für Favoriten</li>
+                            <li>Artikel werden automatisch gruppiert</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>🎯 Erweiterte Funktionen</h3>
+                        <p>Entdecken Sie weitere Features:</p>
+                        <ul>
+                            <li><strong>Favoriten:</strong> Häufige Artikel schnell hinzufügen</li>
+                            <li><strong>Export:</strong> Liste als Text herunterladen</li>
+                            <li><strong>Admin-Panel:</strong> Artikel und Kategorien verwalten</li>
+                            <li><strong>Bulk-Aktionen:</strong> Mehrere Artikel gleichzeitig bearbeiten</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2>❓ Häufig gestellte Fragen (FAQ)</h2>
+            
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h3>🔐 Sind meine Daten sicher in der Demo?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ja! Die Demo läuft vollständig offline in Ihrem Browser. Alle Daten werden nur lokal gespeichert und niemals an externe Server gesendet. Ihre Privatsphäre ist geschützt.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h3>💾 Bleiben meine Demo-Daten erhalten?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ja, Ihre Listen und Artikel werden im Browser localStorage gespeichert und bleiben auch nach dem Schließen des Browsers erhalten. Sie können jederzeit zurückkehren und weiterarbeiten.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h3>🌐 Funktioniert die Demo ohne Internet?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ja! Nach dem ersten Laden funktioniert die Demo komplett offline. Sie können Listen erstellen, bearbeiten und verwalten, auch ohne Internetverbindung.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h3>👥 Kann ich mehrere Benutzer in der Demo testen?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Die Demo simuliert verschiedene Benutzerrollen. Melden Sie sich als "demo" für normale Funktionen oder als "admin" für Administratorrechte an. Jeder Account hat eigene Daten.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h3>🔄 Wie kann ich meine Demo-Daten zurücksetzen?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Öffnen Sie die Browser-Entwicklertools (F12), gehen Sie zur "Application/Storage" Tab, löschen Sie die localStorage Einträge für diese Seite, und laden Sie die Seite neu.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h3>📱 Funktioniert die Demo auf mobilen Geräten?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Absolut! Die App ist vollständig responsiv und funktioniert perfekt auf Smartphones und Tablets. Die Touch-Bedienung ist optimiert für mobile Nutzung.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h3>🚀 Wie kann ich die App selbst installieren?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Besuchen Sie das <a href="https://github.com/ochtii/einkaufsliste" target="_blank">GitHub Repository</a> für vollständige Installationsanweisungen. Sie benötigen Node.js und können die App lokal oder auf einem Server betreiben.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h3>🎯 Welche Browser werden unterstützt?</h3>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Die Demo funktioniert in allen modernen Browsern: Chrome, Firefox, Safari, Edge. Für die beste Erfahrung empfehlen wir die neueste Version Ihres bevorzugten Browsers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <div class="action-buttons">
             <a href="./index.html" class="btn btn-primary">🚀 Demo starten</a>
             <a href="https://github.com/ochtii/einkaufsliste" class="btn btn-secondary">📚 Code ansehen</a>
@@ -401,12 +732,46 @@
                 });
             }, observerOptions);
             
-            // Observe all feature cards
-            document.querySelectorAll('.feature-card, .tech-item').forEach(card => {
+            // Observe all feature cards, steps, and FAQ items
+            document.querySelectorAll('.feature-card, .tech-item, .step-card, .faq-item').forEach(card => {
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(20px)';
                 card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
                 observer.observe(card);
+            });
+        });
+        
+        // FAQ Toggle Function
+        function toggleFAQ(element) {
+            const faqItem = element.parentElement;
+            const isActive = faqItem.classList.contains('active');
+            
+            // Close all other FAQ items
+            document.querySelectorAll('.faq-item.active').forEach(item => {
+                if (item !== faqItem) {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Toggle current FAQ item
+            if (isActive) {
+                faqItem.classList.remove('active');
+            } else {
+                faqItem.classList.add('active');
+            }
+        }
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             });
         });
     </script>
