@@ -88,9 +88,9 @@ jobs:
           current_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
           build_timestamp=$(date +%s)000  # JavaScript timestamp (milliseconds)
           
-          # Use more specific sed patterns to avoid breaking the syntax
-          sed -i "s/lastUpdated: '[^']*'/lastUpdated: '$current_time'/g" build/demo-config.js
-          sed -i "s/buildTimestamp: Date\.now()/buildTimestamp: $build_timestamp/g" build/demo-config.js
+          # Use reliable placeholder replacement
+          sed -i "s/__TIMESTAMP_PLACEHOLDER__/$current_time/g" build/demo-config.js
+          sed -i "s/__BUILD_TIMESTAMP_PLACEHOLDER__/$build_timestamp/g" build/demo-config.js
           
           echo "✅ Demo config updated with timestamp: $current_time"
           echo "Build timestamp: $build_timestamp"
