@@ -81,17 +81,27 @@ jobs:
         if [ -f "public/demo-config.js" ]; then
           echo "Copying complete demo-config.js with DemoAPI"
           
-          # Update the timestamp in demo-config.js
+          # Create a working copy first
+          cp public/demo-config.js build/demo-config.js
+          
+          # Update the timestamps in the build copy
           current_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
           build_timestamp=$(date +%s)000  # JavaScript timestamp (milliseconds)
           
-          # Replace the timestamp in the demo config
-          sed -i "s|lastUpdated: '[^']*'|lastUpdated: '$current_time'|g" public/demo-config.js
-          sed -i "s|buildTimestamp: [0-9]*|buildTimestamp: $build_timestamp|g" public/demo-config.js
-          
-          cp public/demo-config.js build/
+          # Use more specific sed patterns to avoid breaking the syntax
+          sed -i "s/lastUpdated: '[^']*'/lastUpdated: '$current_time'/g" build/demo-config.js
+          sed -i "s/buildTimestamp: Date\.now()/buildTimestamp: $build_timestamp/g" build/demo-config.js
           
           echo "✅ Demo config updated with timestamp: $current_time"
+          echo "Build timestamp: $build_timestamp"
+          
+          # Verify the file is still valid JavaScript
+          if node -c build/demo-config.js 2>/dev/null; then
+            echo "✅ demo-config.js syntax is valid"
+          else
+            echo "❌ demo-config.js syntax error, using original file"
+            cp public/demo-config.js build/demo-config.js
+          fi
         else
           echo "ERROR: demo-config.js not found in public folder!"
           exit 1
@@ -99,11 +109,15 @@ jobs:
         
         # Create app.html as the React app entry point and inject demo config
         if [ -f "build/index.html" ]; then
-          # Copy the built React app
+          # Copy the built React app (which has all the correct script references)
           cp build/index.html build/app.html
           
-          # Inject demo-config.js script into app.html before the React scripts
-          sed -i 's|</body>|  <script src="demo-config.js"></script>\n</body>|' build/app.html
+          # Inject demo-config.js script into app.html before closing body tag (if not already there)
+          if ! grep -q "demo-config.js" build/app.html; then
+            sed -i 's|</body>|  <script src="demo-config.js"></script>\n</body>|' build/app.html
+          fi
+          
+          echo "✅ app.html created with proper React scripts and demo config"
         else
           echo "Warning: build/index.html not found"
         fi

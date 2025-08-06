@@ -9,8 +9,8 @@ const isDemoMode = window.location.hostname === 'ochtii.github.io' ||
 // Demo configuration
 window.DEMO_CONFIG = {
   isDemoMode: isDemoMode,
-  lastUpdated: '2025-08-06 15:30:00 CET',
-  buildTimestamp: Date.now(),
+  lastUpdated: '2025-08-06 15:30:00 UTC',
+  buildTimestamp: 1722960000000,
   demoMessage: {
     de: 'Dies ist eine Demo-Version der Einkaufsliste App',
     en: 'This is a demo version of the Shopping List App'

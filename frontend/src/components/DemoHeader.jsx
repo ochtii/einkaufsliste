@@ -1,14 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function DemoHeader() {
+  const [demoConfig, setDemoConfig] = useState(null);
+  
   // Check if we're in demo mode
   const isDemoMode = window.location.hostname === 'ochtii.github.io' || 
                     (window.location.hostname === 'localhost' && window.location.search.includes('demo=true'));
 
+  useEffect(() => {
+    if (isDemoMode) {
+      // Poll for DEMO_CONFIG to be available
+      const checkConfig = () => {
+        if (window.DEMO_CONFIG) {
+          setDemoConfig(window.DEMO_CONFIG);
+          return true;
+        }
+        return false;
+      };
+      
+      if (!checkConfig()) {
+        const interval = setInterval(() => {
+          if (checkConfig()) {
+            clearInterval(interval);
+          }
+        }, 100);
+        
+        // Cleanup after 5 seconds
+        setTimeout(() => clearInterval(interval), 5000);
+        
+        return () => clearInterval(interval);
+      }
+    }
+  }, [isDemoMode]);
+
   if (!isDemoMode) return null;
 
-  const lastUpdated = window.DEMO_CONFIG?.lastUpdated || '2025-08-06 15:30:00 CET';
-  const buildTime = window.DEMO_CONFIG?.buildTimestamp ? new Date(window.DEMO_CONFIG.buildTimestamp) : new Date();
+  const lastUpdated = demoConfig?.lastUpdated || 'Wird geladen...';
+  const buildTime = demoConfig?.buildTimestamp ? new Date(demoConfig.buildTimestamp) : new Date();
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm py-2 px-4 shadow-lg">
