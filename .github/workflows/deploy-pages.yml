@@ -67,15 +67,35 @@ jobs:
       run: |
         cd frontend
         
-        # Copy demo files to build directory
-        cp public/demo.html build/
-        cp public/demo-config.js build/ || echo "demo-config.js will be created"
+        # Ensure build directory exists
+        mkdir -p build
+        
+        # Copy demo files to build directory (with fallback)
+        if [ -f "public/demo.html" ]; then
+          cp public/demo.html build/
+        else
+          echo "demo.html not found, will be created inline"
+        fi
+        
+        if [ -f "public/demo-config.js" ]; then
+          cp public/demo-config.js build/
+        else
+          echo "demo-config.js not found, will be created inline"
+        fi
         
         # Create app.html as the React app entry point
-        cp build/index.html build/app.html
+        if [ -f "build/index.html" ]; then
+          cp build/index.html build/app.html
+        else
+          echo "Warning: build/index.html not found"
+        fi
         
         # Replace index.html with our landing page
-        cp public/landing.html build/index.html
+        if [ -f "public/landing.html" ]; then
+          cp public/landing.html build/index.html
+        else
+          echo "Warning: public/landing.html not found"
+        fi
         
         # Ensure demo config is available in build directory
         cat > build/demo-config.js << 'EOF'
