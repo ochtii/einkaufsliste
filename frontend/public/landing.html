@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einkaufsliste - Demo</title>
+    <meta name="description" content="Eine moderne Einkaufslisten-App mit Favoriten und Verwaltung - Live Demo">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
+        
+        .demo-info {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .demo-info h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .credentials {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .credential-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .credential-card h4 {
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .credential-card p {
+            font-family: monospace;
+            background: #edf2f7;
+            padding: 5px 8px;
+            border-radius: 4px;
+            margin: 2px 0;
+            font-size: 0.9rem;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .feature {
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .feature-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .feature h4 {
+            color: #2d3748;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .feature p {
+            color: #718096;
+            font-size: 0.8rem;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+        
+        .tech-stack {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .tech-stack h3 {
+            color: #718096;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .tech-tag {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .credentials {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+        
+        .github-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 1.5rem;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .github-link:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <a href="https://github.com/ochtii/einkaufsliste" class="github-link" title="GitHub Repository">⭐</a>
+    
+    <div class="container">
+        <div class="logo">🛒</div>
+        <h1>Einkaufsliste</h1>
+        <p class="subtitle">Moderne Einkaufslisten-App mit Favoriten und intelligenter Verwaltung</p>
+        
+        <div class="demo-info">
+            <h3>🎮 Live Demo verfügbar</h3>
+            <p>Testen Sie alle Features ohne Registrierung!</p>
+            
+            <div class="credentials">
+                <div class="credential-card">
+                    <h4>👤 Demo-Benutzer</h4>
+                    <p><strong>User:</strong> demo</p>
+                    <p><strong>Pass:</strong> demo123</p>
+                </div>
+                <div class="credential-card">
+                    <h4>👨‍💼 Admin-Zugang</h4>
+                    <p><strong>User:</strong> admin</p>
+                    <p><strong>Pass:</strong> admin123</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">📝</div>
+                <h4>Smart Listen</h4>
+                <p>Mehrere Listen verwalten</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⭐</div>
+                <h4>Favoriten</h4>
+                <p>Häufige Artikel speichern</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🏷️</div>
+                <h4>Kategorien</h4>
+                <p>Automatische Sortierung</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <h4>Responsive</h4>
+                <p>Mobile & Desktop</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💾</div>
+                <h4>Offline</h4>
+                <p>Funktioniert überall</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h4>Export</h4>
+                <p>PDF & Text Export</p>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <a href="index.html" class="btn btn-primary">🚀 React App starten</a>
+            <a href="demo.html" class="btn btn-secondary">📋 Detaillierte Infos</a>
+        </div>
+        
+        <div class="tech-stack">
+            <h3>Technologie-Stack</h3>
+            <div class="tech-tags">
+                <span class="tech-tag">React</span>
+                <span class="tech-tag">Node.js</span>
+                <span class="tech-tag">SQLite</span>
+                <span class="tech-tag">Express</span>
+                <span class="tech-tag">Tailwind CSS</span>
+                <span class="tech-tag">GitHub Actions</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simple redirect handling for demo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Einkaufsliste Demo Landing Page geladen');
+            
+            // Add click tracking
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    console.log('Button clicked:', this.textContent);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

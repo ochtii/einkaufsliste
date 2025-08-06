@@ -248,8 +248,11 @@ dist
 # =============================================================================
 # Gatsby Files / Gatsby-Dateien
 # =============================================================================
+# Gatsby Static Site Generator / Gatsby Static Site Generator
+# =============================================================================
 .cache/
-public
+# public (commented out to allow React public folder)
+# public
 
 # =============================================================================
 # Vuepress Build Output / Vuepress Build-Ausgabe
