@@ -1,281 +1,335 @@
-# 🛒 Einkaufsliste / Shopping List Application
+<div align="center">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-14+-green.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
+# 🛒 Einkaufsliste
 
-A comprehensive shopping list application with user management, real-time synchronization, and advanced features.
-Eine umfassende Einkaufslisten-Anwendung mit Benutzerverwaltung, Echtzeitsynchronisation und erweiterten Funktionen.
+**Smart Shopping Lists · Made Simple**
 
-## 📋 Table of Contents / Inhaltsverzeichnis
+[![🌟 Try Live Demo](https://img.shields.io/badge/🌟_Try_Live_Demo-brightgreen?style=for-the-badge&logo=rocket)](https://ochtii.github.io/einkaufsliste/)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[![React](https://img.shields.io/badge/React-18+-61dafb?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-14+-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
 
-- [Features / Funktionen](#-features--funktionen)
-- [Prerequisites / Voraussetzungen](#-prerequisites--voraussetzungen)
-- [Installation](#-installation)
-- [Usage / Verwendung](#-usage--verwendung)
-- [Project Structure / Projektstruktur](#-project-structure--projektstruktur)
-- [License / Lizenz](#-license--lizenz)
-- [Contributing / Mitwirken](#-contributing--mitwirken)
-- [Support / Unterstützung](#-support--unterstützung)
+---
 
-## ✨ Features / Funktionen
+## 🌍 Choose Your Language
 
-### 🇺🇸 English Features:
-- **Multi-user Support**: Individual user accounts with authentication
-- **Real-time Shopping Lists**: Create, edit, and manage multiple shopping lists
-- **Category Management**: Organize items by customizable categories with emojis
-- **Product Management**: Comprehensive admin panel for managing standard articles
-- **Favorites System**: Quick access to frequently used items
-- **Export Functionality**: Export shopping lists as formatted text documents
-- **Dark Theme**: Modern, responsive UI with dark theme
-- **Admin Dashboard**: User management, broadcasts, and system administration
-- **Bulk Operations**: Select and manage multiple items at once
-- **UUID-based**: Secure user identification and data isolation
+<table>
+<tr>
+<td align="center" width="50%">
 
-### 🇩🇪 Deutsche Funktionen:
-- **Mehrbenutzersupport**: Individuelle Benutzerkonten mit Authentifizierung
-- **Echtzeit-Einkaufslisten**: Erstellen, bearbeiten und verwalten mehrerer Einkaufslisten
-- **Kategorienverwaltung**: Artikel nach anpassbaren Kategorien mit Emojis organisieren
-- **Produktverwaltung**: Umfassendes Admin-Panel zur Verwaltung von Standardartikeln
-- **Favoritensystem**: Schneller Zugriff auf häufig verwendete Artikel
-- **Export-Funktionalität**: Einkaufslisten als formatierte Textdokumente exportieren
-- **Dunkles Theme**: Modernes, responsives UI mit dunklem Theme
-- **Admin-Dashboard**: Benutzerverwaltung, Broadcasts und Systemadministration
-- **Bulk-Operationen**: Mehrere Artikel gleichzeitig auswählen und verwalten
-- **UUID-basiert**: Sichere Benutzeridentifikation und Datenisolierung
+### 🇺🇸 **English**
+[**Click here for English documentation**](#english-version) →
 
-## 📋 Prerequisites / Voraussetzungen
-## 📋 Prerequisites / Voraussetzungen
+Modern shopping list app with real-time sync, user management, and smart features.
 
-### System Requirements / Systemanforderungen:
-- **Node.js** >= 14.0.0 (recommended: latest LTS)
-- **npm** >= 6.0.0 or **yarn** >= 1.22.0
-- **Git** (optional, for cloning)
-- **Modern Web Browser** (Chrome, Firefox, Safari, Edge)
+</td>
+<td align="center" width="50%">
 
-### Development Environment / Entwicklungsumgebung:
-- **VS Code** (recommended with extensions)
-- **Terminal/Command Prompt**
-- **SQLite** (included with Node.js)
+### 🇩🇪 **Deutsch**
+[**Hier klicken für deutsche Dokumentation**](#deutsche-version) →
 
-## 🚀 Installation
+Moderne Einkaufslisten-App mit Echtzeitsynchronisation, Benutzerverwaltung und intelligenten Funktionen.
 
-### 1. Clone Repository / Repository klonen:
+</td>
+</tr>
+</table>
+
+---
+
+</div>
+
+# English Version
+
+## 🎮 **Live Demo - Try it Now!**
+
+<div align="center">
+
+### **No Installation Required · Instant Access · Full Features**
+
+[![🚀 Launch Demo](https://img.shields.io/badge/🚀_Launch_Demo-Try_Now-success?style=for-the-badge&logo=external-link)](https://ochtii.github.io/einkaufsliste/)
+
+**Quick Access:**
+- 👤 **User Demo**: `demo` / `demo123`
+- 🔧 **Admin Demo**: `admin` / `admin123`
+
+</div>
+
+> 💡 **Perfect for testing** - The demo runs entirely in your browser with full offline capability and persistent data storage!
+
+---
+
+## ✨ **Key Features**
+
+<table>
+<tr>
+<td width="33%" align="center">
+
+### 📝 **Smart Lists**
+Create and organize multiple shopping lists with intelligent categorization
+
+</td>
+<td width="33%" align="center">
+
+### ⭐ **Favorites**
+Quick access to frequently used items with one-click adding
+
+</td>
+<td width="33%" align="center">
+
+### 👥 **Multi-User**
+Individual accounts with secure authentication and data isolation
+
+</td>
+</tr>
+<tr>
+<td width="33%" align="center">
+
+### 🎨 **Modern UI**
+Clean, responsive design built with React and Tailwind CSS
+
+</td>
+<td width="33%" align="center">
+
+### 🔧 **Admin Panel**
+Comprehensive management for users, products, and categories
+
+</td>
+<td width="33%" align="center">
+
+### 📱 **Responsive**
+Works seamlessly on desktop, tablet, and mobile devices
+
+</td>
+</tr>
+</table>
+
+## 🛠️ **Tech Stack**
+
+<div align="center">
+
+**Frontend** | **Backend** | **Database**
+:---: | :---: | :---:
+![React](https://img.shields.io/badge/React-61dafb?style=for-the-badge&logo=react&logoColor=black) | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white) | ![SQLite](https://img.shields.io/badge/SQLite-003b57?style=for-the-badge&logo=sqlite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-06b6d4?style=for-the-badge&logo=tailwindcss&logoColor=white) | ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white) | ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+
+</div>
+
+## 🚀 **Quick Start**
+
+<details>
+<summary><b>📦 Installation</b></summary>
+
+### Prerequisites
+- Node.js 14+ 
+- npm or yarn
+
+### Setup
 ```bash
-git clone https://github.com/ochtii/einkaufsliste.git
+# Clone repository
+git clone https://github.com/Ochtii/einkaufsliste.git
 cd einkaufsliste
+
+# Backend setup
+cd backend && npm install && npm start
+
+# Frontend setup (new terminal)
+cd ../frontend && npm install && npm start
 ```
 
-### 2. Backend Setup / Backend-Einrichtung:
+**🌐 Access:** `http://localhost:3000`
+
+</details>
+
+## 📚 **Usage Guide**
+
+<details>
+<summary><b>👤 For Users</b></summary>
+
+1. **Register** your account or use demo credentials
+2. **Create lists** for different occasions (groceries, shopping, etc.)
+3. **Add items** using smart suggestions and categories
+4. **Manage** your lists with edit, delete, and export functions
+5. **Use favorites** for quick access to common items
+
+</details>
+
+<details>
+<summary><b>🔧 For Administrators</b></summary>
+
+1. **Login** with admin credentials
+2. **Manage users** - view and moderate accounts
+3. **Product management** - add/edit standard articles
+4. **Category management** - customize item categories
+5. **System monitoring** - overview of usage and statistics
+
+</details>
+
+## 🤝 **Contributing**
+
+Contributions welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
+
+1. Fork the project
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 **License**
+
+This project is licensed under the [MIT License](LICENSE) - see the file for details.
+
+---
+
+<div align="center">
+
+# Deutsche Version
+
+## 🎮 **Live Demo - Jetzt ausprobieren!**
+
+### **Keine Installation nötig · Sofortiger Zugriff · Alle Funktionen**
+
+[![🚀 Demo starten](https://img.shields.io/badge/🚀_Demo_starten-Jetzt_testen-success?style=for-the-badge&logo=external-link)](https://ochtii.github.io/einkaufsliste/)
+
+**Schnellzugriff:**
+- 👤 **Benutzer-Demo**: `demo` / `demo123`
+- 🔧 **Admin-Demo**: `admin` / `admin123`
+
+</div>
+
+> 💡 **Perfekt zum Testen** - Die Demo läuft vollständig im Browser mit kompletter Offline-Funktionalität und dauerhafter Datenspeicherung!
+
+---
+
+## ✨ **Hauptfunktionen**
+
+<table>
+<tr>
+<td width="33%" align="center">
+
+### 📝 **Intelligente Listen**
+Erstellen und organisieren Sie mehrere Einkaufslisten mit automatischer Kategorisierung
+
+</td>
+<td width="33%" align="center">
+
+### ⭐ **Favoriten**
+Schnellzugriff auf häufig verwendete Artikel mit Ein-Klick-Hinzufügung
+
+</td>
+<td width="33%" align="center">
+
+### 👥 **Mehrbenutzer**
+Individuelle Konten mit sicherer Authentifizierung und Datenisolierung
+
+</td>
+</tr>
+<tr>
+<td width="33%" align="center">
+
+### 🎨 **Moderne Oberfläche**
+Sauberes, responsives Design mit React und Tailwind CSS
+
+</td>
+<td width="33%" align="center">
+
+### 🔧 **Admin-Panel**
+Umfassende Verwaltung für Benutzer, Produkte und Kategorien
+
+</td>
+<td width="33%" align="center">
+
+### 📱 **Responsiv**
+Funktioniert nahtlos auf Desktop, Tablet und Mobilgeräten
+
+</td>
+</tr>
+</table>
+
+## 🛠️ **Technologie-Stack**
+
+<div align="center">
+
+**Frontend** | **Backend** | **Datenbank**
+:---: | :---: | :---:
+![React](https://img.shields.io/badge/React-61dafb?style=for-the-badge&logo=react&logoColor=black) | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white) | ![SQLite](https://img.shields.io/badge/SQLite-003b57?style=for-the-badge&logo=sqlite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-06b6d4?style=for-the-badge&logo=tailwindcss&logoColor=white) | ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white) | ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+
+</div>
+
+## 🚀 **Schnellstart**
+
+<details>
+<summary><b>📦 Installation</b></summary>
+
+### Voraussetzungen
+- Node.js 14+ 
+- npm oder yarn
+
+### Einrichtung
 ```bash
-cd backend
-npm install
-npm start
-```
-**Backend runs on / Backend läuft auf:** `http://localhost:4000`
+# Repository klonen
+git clone https://github.com/Ochtii/einkaufsliste.git
+cd einkaufsliste
 
-### 3. Frontend Setup / Frontend-Einrichtung:
-```bash
-cd ../frontend
-npm install
-npm start
-```
-**Frontend runs on / Frontend läuft auf:** `http://localhost:3000`
+# Backend einrichten
+cd backend && npm install && npm start
 
-### 4. Access Application / Anwendung aufrufen:
-- Open browser / Browser öffnen: `http://localhost:3000`
-- Register new account / Neues Konto registrieren
-- Start creating shopping lists / Einkaufslisten erstellen
-
-## 🎯 Usage / Verwendung
-
-### 🇺🇸 English Usage:
-
-#### For Regular Users:
-1. **Registration**: Create a new account or login
-2. **Create Lists**: Add new shopping lists with custom names
-3. **Add Items**: Use the smart suggestion system with favorites
-4. **Organize**: Categories automatically organize your items
-5. **Shop**: Check off items as you shop
-6. **Export**: Download your lists as text files
-7. **Manage**: Edit, delete, or duplicate lists as needed
-
-#### For Administrators:
-1. **Admin Access**: Login with admin credentials
-2. **User Management**: View and manage user accounts
-3. **Product Management**: Add/edit standard articles and categories
-4. **Broadcasts**: Send notifications to all users
-5. **System Overview**: Monitor application usage
-
-### 🇩🇪 Deutsche Verwendung:
-
-#### Für normale Benutzer:
-1. **Registrierung**: Neues Konto erstellen oder anmelden
-2. **Listen erstellen**: Neue Einkaufslisten mit benutzerdefinierten Namen hinzufügen
-3. **Artikel hinzufügen**: Intelligentes Vorschlagssystem mit Favoriten verwenden
-4. **Organisieren**: Kategorien organisieren Ihre Artikel automatisch
-5. **Einkaufen**: Artikel beim Einkaufen abhaken
-6. **Exportieren**: Listen als Textdateien herunterladen
-7. **Verwalten**: Listen nach Bedarf bearbeiten, löschen oder duplizieren
-
-#### Für Administratoren:
-1. **Admin-Zugang**: Mit Admin-Anmeldedaten anmelden
-2. **Benutzerverwaltung**: Benutzerkonten anzeigen und verwalten
-3. **Produktverwaltung**: Standardartikel und Kategorien hinzufügen/bearbeiten
-4. **Broadcasts**: Benachrichtigungen an alle Benutzer senden
-5. **Systemübersicht**: Anwendungsnutzung überwachen
-
-## 📁 Project Structure / Projektstruktur
-## 📁 Project Structure / Projektstruktur
-
-```
-einkaufsliste/
-├── 📄 LICENSE                    # MIT License (multilingual)
-├── 📄 README.md                  # This documentation
-├── 🖥️ backend/                  # Node.js/Express Backend
-│   ├── 📄 package.json          # Backend dependencies
-│   ├── 📄 server.js             # Main server file
-│   └── 📄 db.sqlite             # SQLite database
-├── 🌐 frontend/                 # React Frontend
-│   ├── 📄 package.json          # Frontend dependencies
-│   ├── 📄 tailwind.config.js    # Tailwind CSS configuration
-│   ├── 📁 public/               # Static assets
-│   │   └── 📄 index.html        # HTML template
-│   └── 📁 src/                  # Source code
-│       ├── 📄 App.jsx           # Main application component
-│       ├── 📄 index.jsx         # Application entry point
-│       ├── 📁 components/       # React components
-│       │   ├── 📄 ArticleForm.jsx      # Article input form
-│       │   ├── 📄 ArticleList.jsx      # Shopping list display
-│       │   ├── 📄 CategoryIcon.jsx     # Category icons
-│       │   ├── 📄 FavoriteList.jsx     # Favorites management
-│       │   ├── 📄 ProductManagement.jsx # Admin product management
-│       │   └── 📄 [other components]   # Additional components
-│       └── 📁 utils/            # Utility functions
-│           └── 📄 api.js        # API communication
+# Frontend einrichten (neues Terminal)
+cd ../frontend && npm install && npm start
 ```
 
-### Key Components / Hauptkomponenten:
+**🌐 Zugriff:** `http://localhost:3000`
 
-#### Backend / Backend:
-- **server.js**: Express server with REST API endpoints
-- **db.sqlite**: SQLite database with user data, lists, articles, categories
-- **Authentication**: JWT-based user authentication
-- **API Endpoints**: RESTful API for all operations
+</details>
 
-#### Frontend / Frontend:
-- **React 18+**: Modern React with hooks and functional components
-- **Tailwind CSS**: Utility-first CSS framework for styling
-- **Component Architecture**: Modular, reusable components
-- **State Management**: React hooks for state management
-- **Responsive Design**: Mobile-first responsive layout
+## 📚 **Benutzerhandbuch**
 
-## 📜 License / Lizenz
+<details>
+<summary><b>👤 Für Benutzer</b></summary>
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for complete details in multiple languages.
+1. **Registrieren** Sie Ihr Konto oder nutzen Sie die Demo-Anmeldedaten
+2. **Erstellen Sie Listen** für verschiedene Anlässe (Lebensmittel, Shopping, etc.)
+3. **Fügen Sie Artikel hinzu** mit intelligenten Vorschlägen und Kategorien
+4. **Verwalten Sie** Ihre Listen mit Bearbeiten-, Löschen- und Export-Funktionen
+5. **Nutzen Sie Favoriten** für schnellen Zugriff auf häufige Artikel
 
-Dieses Projekt steht unter der **MIT-Lizenz** - siehe die [LICENSE](LICENSE) Datei für vollständige Details in mehreren Sprachen.
+</details>
 
-### License Summary / Lizenz-Zusammenfassung:
+<details>
+<summary><b>🔧 Für Administratoren</b></summary>
 
-#### 🇺🇸 English:
-- ✅ **Commercial use** - Use for commercial purposes
-- ✅ **Modification** - Modify the source code
-- ✅ **Distribution** - Distribute copies
-- ✅ **Private use** - Use privately
-- ❌ **Liability** - No warranty or liability
-- ❌ **Warranty** - No warranty provided
+1. **Anmelden** mit Admin-Anmeldedaten
+2. **Benutzer verwalten** - Konten anzeigen und moderieren
+3. **Produktverwaltung** - Standardartikel hinzufügen/bearbeiten
+4. **Kategorienverwaltung** - Artikelkategorien anpassen
+5. **Systemüberwachung** - Überblick über Nutzung und Statistiken
 
-#### 🇩🇪 Deutsch:
-- ✅ **Kommerzielle Nutzung** - Für kommerzielle Zwecke verwenden
-- ✅ **Modifikation** - Quellcode ändern
-- ✅ **Verteilung** - Kopien verteilen
-- ✅ **Private Nutzung** - Privat verwenden
-- ❌ **Haftung** - Keine Gewährleistung oder Haftung
-- ❌ **Garantie** - Keine Garantie gewährt
+</details>
 
-## 🤝 Contributing / Mitwirken
+## 🤝 **Mitwirken**
 
-### 🇺🇸 English:
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+Beiträge sind willkommen! Bitte lesen Sie zuerst unsere [Mitwirkungsrichtlinien](CONTRIBUTING.md).
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### 🇩🇪 Deutsch:
-Beiträge sind willkommen! Bitte reichen Sie gerne einen Pull Request ein. Bei größeren Änderungen öffnen Sie bitte zuerst ein Issue, um zu besprechen, was Sie ändern möchten.
-
-1. Repository forken
-2. Feature-Branch erstellen (`git checkout -b feature/TollesFunktion`)
-3. Änderungen committen (`git commit -m 'Füge tolle Funktion hinzu'`)
-4. Zum Branch pushen (`git push origin feature/TollesFunktion`)
+1. Projekt forken
+2. Feature-Branch erstellen (`git checkout -b feature/tolle-funktion`)
+3. Änderungen committen (`git commit -m 'Tolle Funktion hinzufügen'`)
+4. Zum Branch pushen (`git push origin feature/tolle-funktion`)
 5. Pull Request öffnen
 
-## 🆘 Support / Unterstützung
+## 📄 **Lizenz**
 
-### 🇺🇸 English:
-If you encounter any issues or have questions:
-
-1. **Check Documentation**: Review this README and the LICENSE file
-2. **Search Issues**: Look for existing issues in the repository
-3. **Create Issue**: Open a new issue with detailed description
-4. **Community**: Join discussions in the repository
-
-### 🇩🇪 Deutsch:
-Bei Problemen oder Fragen:
-
-1. **Dokumentation prüfen**: Diese README und die LICENSE-Datei durchlesen
-2. **Issues durchsuchen**: Nach bestehenden Issues im Repository suchen
-3. **Issue erstellen**: Neues Issue mit detaillierter Beschreibung öffnen
-4. **Community**: An Diskussionen im Repository teilnehmen
-
-## 🏗️ Technical Details / Technische Details
-
-### Database Schema / Datenbankschema:
-- **users**: User accounts with UUID identification
-- **lists**: Shopping lists belonging to users
-- **articles**: List items with categories and status
-- **categories**: Item categories with icons
-- **favorites**: User favorite items
-- **standard_articles**: Predefined article templates
-
-### API Endpoints / API-Endpunkte:
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/lists` - Get user lists
-- `POST /api/lists` - Create new list
-- `GET /api/categories` - Get categories
-- `POST /api/standard-articles` - Add standard article
-- `GET /api/admin/users` - Admin user management
-
-### Security Features / Sicherheitsfeatures:
-- JWT token authentication
-- Password hashing with bcrypt
-- User data isolation
-- Input validation and sanitization
-- CORS protection
+Dieses Projekt steht unter der [MIT-Lizenz](LICENSE) - siehe die Datei für Details.
 
 ---
 
-## 📞 Contact / Kontakt
+<div align="center">
 
-For questions about this project or license:
-Bei Fragen zu diesem Projekt oder der Lizenz:
+**Made with ❤️ by developers, for developers**
 
-- **Project Repository**: https://github.com/ochtii/einkaufsliste
-- **Documentation**: See this README.md file
-- **License**: See LICENSE file for complete terms
+[![⭐ Star this repo](https://img.shields.io/badge/⭐_Star_this_repo-yellow?style=for-the-badge)](https://github.com/Ochtii/einkaufsliste)
+[![🐛 Report Bug](https://img.shields.io/badge/🐛_Report_Bug-red?style=for-the-badge)](https://github.com/Ochtii/einkaufsliste/issues)
+[![💡 Request Feature](https://img.shields.io/badge/💡_Request_Feature-blue?style=for-the-badge)](https://github.com/Ochtii/einkaufsliste/issues)
 
----
+*Last updated: August 6, 2025*
 
-**Made with ❤️ by developers for developers**  
-**Erstellt mit ❤️ von Entwicklern für Entwickler**
-
-Last updated / Zuletzt aktualisiert: August 6, 2025
-- Backend-DB unter `backend/db.sqlite`.
-
-## Lizenz
-MIT
+</div>
