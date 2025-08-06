@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDemoMode } from './hooks/useDemoMode';
+import DemoHeader from './components/DemoHeader';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ListManager from './components/ListManager';
@@ -423,21 +424,38 @@ function AppContent() {
 
   // Check if URL is admin route
   if (window.location.pathname === '/dJkL9mN2pQ7rS4tUvWxYz') {
-    return <Admin />;
+    return (
+      <>
+        <DemoHeader />
+        <div style={{ paddingTop: isDemoMode ? '3rem' : '0' }}>
+          <Admin />
+        </div>
+      </>
+    );
   }
 
   if (loading || (isDemoMode && !demoReady)) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-400">
-            {isDemoMode ? 'Lade Demo-Konfiguration...' : 'Lade Anwendung...'}
-          </p>
+      <>
+        <DemoHeader />
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center" style={{ paddingTop: isDemoMode ? '3rem' : '0' }}>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-400">
+              {isDemoMode ? 'Lade Demo-Konfiguration...' : 'Lade Anwendung...'}
+            </p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
-  return user ? <MainApp /> : <AuthScreen />;
+  return (
+    <>
+      <DemoHeader />
+      <div style={{ paddingTop: isDemoMode ? '3rem' : '0' }}>
+        {user ? <MainApp /> : <AuthScreen />}
+      </div>
+    </>
+  );
 }

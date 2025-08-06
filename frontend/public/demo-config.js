@@ -9,6 +9,8 @@ const isDemoMode = window.location.hostname === 'ochtii.github.io' ||
 // Demo configuration
 window.DEMO_CONFIG = {
   isDemoMode: isDemoMode,
+  lastUpdated: '2025-08-06 15:30:00 CET',
+  buildTimestamp: Date.now(),
   demoMessage: {
     de: 'Dies ist eine Demo-Version der Einkaufsliste App',
     en: 'This is a demo version of the Shopping List App'
@@ -114,11 +116,15 @@ console.log('Demo config initialization:', {
   isDemoMode,
   hostname: window.location.hostname,
   offlineMode: window.DEMO_CONFIG.features.offlineMode,
-  shouldInitDemoAPI: isDemoMode && window.DEMO_CONFIG.features.offlineMode
+  shouldInitDemoAPI: isDemoMode && window.DEMO_CONFIG.features.offlineMode,
+  timestamp: new Date().toISOString()
 });
 
-if (isDemoMode && window.DEMO_CONFIG.features.offlineMode) {
+// Always initialize DemoAPI when offlineMode is enabled, regardless of hostname
+if (window.DEMO_CONFIG.features.offlineMode) {
   console.log('Initializing DemoAPI...');
+  
+  // Initialize immediately for reliability
   window.DemoAPI = {
     // Mock local storage for demo data
     storage: {

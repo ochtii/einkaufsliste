@@ -15,8 +15,12 @@ export function useDemoMode() {
       if (isDemo) {
         // Wait for demo config to load
         const checkDemoReady = () => {
-          if (window.DEMO_CONFIG && window.DemoAPI) {
-            console.log('Demo mode fully initialized');
+          if (window.DEMO_CONFIG && (window.DemoAPI || !window.DEMO_CONFIG.features.offlineMode)) {
+            console.log('Demo mode fully initialized', { 
+              hasDemoConfig: !!window.DEMO_CONFIG, 
+              hasDemoAPI: !!window.DemoAPI,
+              offlineMode: window.DEMO_CONFIG?.features?.offlineMode 
+            });
             setDemoReady(true);
             return true;
           }

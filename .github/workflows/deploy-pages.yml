@@ -80,7 +80,18 @@ jobs:
         # Copy the complete demo-config.js (don't overwrite!)
         if [ -f "public/demo-config.js" ]; then
           echo "Copying complete demo-config.js with DemoAPI"
+          
+          # Update the timestamp in demo-config.js
+          current_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          build_timestamp=$(date +%s)000  # JavaScript timestamp (milliseconds)
+          
+          # Replace the timestamp in the demo config
+          sed -i "s|lastUpdated: '[^']*'|lastUpdated: '$current_time'|g" public/demo-config.js
+          sed -i "s|buildTimestamp: [0-9]*|buildTimestamp: $build_timestamp|g" public/demo-config.js
+          
           cp public/demo-config.js build/
+          
+          echo "✅ Demo config updated with timestamp: $current_time"
         else
           echo "ERROR: demo-config.js not found in public folder!"
           exit 1

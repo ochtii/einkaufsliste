@@ -28,18 +28,20 @@ export default function LoginForm({ onSwitchToRegister, registrationSuccess, onC
       
       if (isDemoMode) {
         // In demo mode, ONLY use DemoAPI - never fall back to backend
+        let attempts = 0;
+        const maxAttempts = 20; // Wait up to 2 seconds
+        
+        // Wait for DemoAPI to be available
+        while (!window.DemoAPI && attempts < maxAttempts) {
+          console.log(`Waiting for DemoAPI... attempt ${attempts + 1}/${maxAttempts}`);
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        
         if (!window.DemoAPI) {
-          // Try to initialize DemoAPI if DEMO_CONFIG exists
-          if (window.DEMO_CONFIG && window.DEMO_CONFIG.features.offlineMode) {
-            console.log('Attempting to initialize DemoAPI manually...');
-            // Wait a bit and try again
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
-          
-          if (!window.DemoAPI) {
-            setError('Demo-Modus ist noch nicht bereit. Bitte warten Sie einen Moment und versuchen Sie es erneut.');
-            return;
-          }
+          console.error('DemoAPI not available after timeout');
+          setError('Demo-API konnte nicht geladen werden. Bitte Seite neu laden und erneut versuchen.');
+          return;
         }
         
         console.log('Using DemoAPI for authentication');
