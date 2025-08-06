@@ -15,7 +15,8 @@ lerna-debug.log*
 # =============================================================================
 # Package Manager Lock Files / Paketmanager-Sperrdateien
 # =============================================================================
-package-lock.json
+# Keep package-lock.json for reproducible builds in GitHub Actions
+# package-lock.json 
 yarn.lock
 pnpm-lock.yaml
 
