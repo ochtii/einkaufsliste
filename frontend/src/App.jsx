@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDemoMode } from './hooks/useDemoMode';
-import DemoHeader from './components/DemoHeader';
+import * as api from './utils/api';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ListManager from './components/ListManager';
@@ -30,18 +30,8 @@ function MainApp() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:4000/api/lists/${currentList.id}/articles`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setArticles(data);
-      } else {
-        setError('Fehler beim Laden der Artikel');
-      }
+      const articles = await api.fetchArticles(currentList.id, token);
+      setArticles(articles);
     } catch (err) {
       setError('Verbindungsfehler: ' + err.message);
       console.error('Fetch error:', err);
@@ -52,16 +42,8 @@ function MainApp() {
 
   const loadFavorites = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/favorites', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setFavorites(data);
-      }
+      const favorites = await api.fetchFavorites(token);
+      setFavorites(favorites);
     } catch (err) {
       console.error('Error loading favorites:', err);
     }
@@ -78,23 +60,14 @@ function MainApp() {
 
   async function handleAddToFavorites(article) {
     try {
-      const response = await fetch('http://localhost:4000/api/favorites', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: article.name,
-          category: article.category,
-          icon: article.icon,
-          comment: article.comment
-        })
-      });
-
-      if (response.ok) {
-        loadFavorites();
-      }
+      await api.addToFavorites({
+        name: article.name,
+        category: article.category,
+        icon: article.icon,
+        comment: article.comment
+      }, token);
+      
+      loadFavorites();
     } catch (err) {
       setError('Fehler beim Hinzufügen zu Favoriten: ' + err.message);
     }
@@ -102,16 +75,8 @@ function MainApp() {
 
   async function handleRemoveFromFavorites(favoriteId) {
     try {
-      const response = await fetch(`http://localhost:4000/api/favorites/${favoriteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        loadFavorites();
-      }
+      await api.removeFromFavorites(favoriteId, token);
+      loadFavorites();
     } catch (err) {
       setError('Fehler beim Entfernen aus Favoriten: ' + err.message);
     }
@@ -119,21 +84,12 @@ function MainApp() {
 
   async function handleToggleBought(article) {
     try {
-      const response = await fetch(`http://localhost:4000/api/articles/${article.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...article,
-          is_bought: !article.is_bought
-        })
-      });
-
-      if (response.ok) {
-        loadArticles();
-      }
+      await api.updateArticle(currentList.id, article.id, {
+        ...article,
+        is_bought: !article.is_bought
+      }, token);
+      
+      loadArticles();
     } catch (err) {
       setError('Fehler beim Aktualisieren: ' + err.message);
     }
@@ -141,16 +97,8 @@ function MainApp() {
 
   async function handleDelete(id) {
     try {
-      const response = await fetch(`http://localhost:4000/api/articles/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        loadArticles();
-      }
+      await api.deleteArticle(currentList.id, id, token);
+      loadArticles();
     } catch (err) {
       setError('Fehler beim Löschen: ' + err.message);
     }
@@ -160,23 +108,14 @@ function MainApp() {
     if (!currentList) return;
     
     try {
-      const response = await fetch(`http://localhost:4000/api/lists/${currentList.id}/articles`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: favorite.name,
-          category: favorite.category,
-          icon: favorite.icon,
-          comment: favorite.comment
-        })
-      });
-
-      if (response.ok) {
-        loadArticles();
-      }
+      await api.createArticle(currentList.id, {
+        name: favorite.name,
+        category: favorite.category,
+        icon: favorite.icon,
+        comment: favorite.comment
+      }, token);
+      
+      loadArticles();
     } catch (err) {
       setError('Fehler beim Hinzufügen: ' + err.message);
     }
@@ -420,42 +359,22 @@ export default function App() {
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const { isDemoMode, demoReady } = useDemoMode();
 
   // Check if URL is admin route
   if (window.location.pathname === '/dJkL9mN2pQ7rS4tUvWxYz') {
-    return (
-      <>
-        <DemoHeader />
-        <div style={{ paddingTop: isDemoMode ? '3rem' : '0' }}>
-          <Admin />
-        </div>
-      </>
-    );
+    return <Admin />;
   }
 
-  if (loading || (isDemoMode && !demoReady)) {
+  if (loading) {
     return (
-      <>
-        <DemoHeader />
-        <div className="min-h-screen bg-gray-950 flex items-center justify-center" style={{ paddingTop: isDemoMode ? '3rem' : '0' }}>
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-400">
-              {isDemoMode ? 'Lade Demo-Konfiguration...' : 'Lade Anwendung...'}
-            </p>
-          </div>
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-400">Lade Anwendung...</p>
         </div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <DemoHeader />
-      <div style={{ paddingTop: isDemoMode ? '3rem' : '0' }}>
-        {user ? <MainApp /> : <AuthScreen />}
       </div>
-    </>
-  );
+    );
+  }
+
+  return user ? <MainApp /> : <AuthScreen />;
 }

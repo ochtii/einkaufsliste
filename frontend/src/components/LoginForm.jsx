@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import * as api from '../utils/api';
 
 export default function LoginForm({ onSwitchToRegister, registrationSuccess, onClearRegistrationSuccess }) {
   const [username, setUsername] = useState('');
@@ -59,21 +60,8 @@ export default function LoginForm({ onSwitchToRegister, registrationSuccess, onC
 
       // Regular backend login (only for non-demo mode)
       console.log('Attempting regular backend login');
-      const response = await fetch('http://localhost:4000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        login(data.token, data.user);
-      } else {
-        setError(data.error || 'Anmeldung fehlgeschlagen');
-      }
+      const data = await api.loginUser(username, password);
+      login(data.token, data.user);
     } catch (error) {
       console.error('Login error:', error);
       setError('Verbindungsfehler. Versuche es später erneut.');
