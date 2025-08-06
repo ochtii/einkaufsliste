@@ -40,46 +40,53 @@ async function initDb() {
   // Shopping lists table
   await db.exec(`
     CREATE TABLE IF NOT EXISTS shopping_lists (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      uuid TEXT PRIMARY KEY,
+      user_uuid TEXT NOT NULL,
       name TEXT NOT NULL,
       icon TEXT DEFAULT '🛒',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      FOREIGN KEY (user_uuid) REFERENCES users (uuid) ON DELETE CASCADE
     );
   `);
   
-  // Articles table (erweitert)
+  // Migration: Add UUIDs to existing shopping_lists (skip for new tables)
+  // New tables already have UUID schema  // Articles table (erweitert)
   await db.exec(`
     CREATE TABLE IF NOT EXISTS articles (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       category TEXT NOT NULL,
       icon TEXT,
       comment TEXT DEFAULT '',
-      user_id INTEGER,
-      list_id INTEGER,
+      user_uuid TEXT,
+      list_uuid TEXT,
       is_bought BOOLEAN DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-      FOREIGN KEY (list_id) REFERENCES shopping_lists (id) ON DELETE CASCADE
+      FOREIGN KEY (user_uuid) REFERENCES users (uuid) ON DELETE CASCADE,
+      FOREIGN KEY (list_uuid) REFERENCES shopping_lists (uuid) ON DELETE CASCADE
     );
   `);
+  
+  // Migration: Add UUIDs to existing articles (skip for new tables)
+  // New tables already have UUID schema
   
   // Favorites table (separate)
   await db.exec(`
     CREATE TABLE IF NOT EXISTS favorites (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      uuid TEXT PRIMARY KEY,
+      user_uuid TEXT NOT NULL,
       name TEXT NOT NULL,
       category TEXT NOT NULL,
       icon TEXT,
       comment TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-      UNIQUE(user_id, name, category)
+      FOREIGN KEY (user_uuid) REFERENCES users (uuid) ON DELETE CASCADE,
+      UNIQUE(user_uuid, name, category)
     );
   `);
+  
+  // Migration: Add UUIDs to existing favorites (skip for new tables)
+  // New tables already have UUID schema
   
   // Standard articles table
   await db.exec(`
@@ -89,26 +96,29 @@ async function initDb() {
       category TEXT NOT NULL,
       icon TEXT,
       is_global BOOLEAN DEFAULT 0,
-      user_id INTEGER,
+      user_uuid TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-      UNIQUE(name, category, user_id)
+      FOREIGN KEY (user_uuid) REFERENCES users (uuid) ON DELETE CASCADE,
+      UNIQUE(name, category, user_uuid)
     );
   `);
   
   // Categories table
   await db.exec(`
     CREATE TABLE IF NOT EXISTS categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      uuid TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       icon TEXT NOT NULL,
       is_global BOOLEAN DEFAULT 0,
-      user_id INTEGER,
+      user_uuid TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-      UNIQUE(name, user_id)
+      FOREIGN KEY (user_uuid) REFERENCES users (uuid) ON DELETE CASCADE,
+      UNIQUE(name, user_uuid)
     );
   `);
+  
+  // Migration: Add UUIDs to existing categories (skip for new tables)  
+  // New tables already have UUID schema
   
     // Broadcasts table
   await db.exec(`
@@ -130,11 +140,11 @@ async function initDb() {
     CREATE TABLE IF NOT EXISTS broadcast_confirmations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       broadcast_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
+      user_uuid TEXT NOT NULL,
       confirmed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (broadcast_id) REFERENCES broadcasts (id) ON DELETE CASCADE,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-      UNIQUE(broadcast_id, user_id)
+      FOREIGN KEY (user_uuid) REFERENCES users (uuid) ON DELETE CASCADE,
+      UNIQUE(broadcast_id, user_uuid)
     );
   `);
 
@@ -147,10 +157,10 @@ async function initDb() {
       params TEXT,
       response_time INTEGER,
       error TEXT,
-      user_id INTEGER,
+      user_uuid TEXT,
       ip_address TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+      FOREIGN KEY (user_uuid) REFERENCES users (uuid) ON DELETE SET NULL
     );
   `);
   
@@ -216,6 +226,51 @@ async function initDb() {
     console.log('UUID migration completed or not needed');
   }
   
+  // Add UUID columns to remaining tables that still use old schema
+  try {
+    await db.exec(`ALTER TABLE standard_articles ADD COLUMN user_uuid TEXT;`);
+  } catch (error) {
+    // Column already exists, ignore error
+  }
+  try {
+    await db.exec(`ALTER TABLE broadcast_confirmations ADD COLUMN user_uuid TEXT;`);
+  } catch (error) {
+    // Column already exists, ignore error
+  }
+  try {
+    await db.exec(`ALTER TABLE db_logs ADD COLUMN user_uuid TEXT;`);
+  } catch (error) {
+    // Column already exists, ignore error
+  }
+  
+  // Migration: Update remaining foreign key relationships to UUIDs
+  try {
+    // Update standard_articles.user_uuid based on user_id
+    await db.exec(`
+      UPDATE standard_articles 
+      SET user_uuid = (SELECT uuid FROM users WHERE users.id = standard_articles.user_id)
+      WHERE user_uuid IS NULL AND user_id IS NOT NULL
+    `);
+    
+    // Update broadcast_confirmations.user_uuid based on user_id
+    await db.exec(`
+      UPDATE broadcast_confirmations 
+      SET user_uuid = (SELECT uuid FROM users WHERE users.id = broadcast_confirmations.user_id)
+      WHERE user_uuid IS NULL AND user_id IS NOT NULL
+    `);
+    
+    // Update db_logs.user_uuid based on user_id
+    await db.exec(`
+      UPDATE db_logs 
+      SET user_uuid = (SELECT uuid FROM users WHERE users.id = db_logs.user_id)
+      WHERE user_uuid IS NULL AND user_id IS NOT NULL
+    `);
+    
+    console.log('Remaining UUID migration completed');
+  } catch (error) {
+    console.log('Remaining UUID migration completed or not needed');
+  }
+  
   // Create default admin user if not exists
   try {
     const adminUser = await db.get('SELECT id FROM users WHERE username = ? AND is_admin = 1', 'admin');
@@ -254,11 +309,11 @@ function authenticateToken(req, res, next) {
 }
 
 // Database logging middleware
-async function logDatabaseOperation(method, query, params, responseTime, error, userId, ipAddress) {
+async function logDatabaseOperation(method, query, params, responseTime, error, userUuid, ipAddress) {
   try {
     const db = await initDb();
     await db.run(`
-      INSERT INTO db_logs (method, query, params, response_time, error, user_id, ip_address)
+      INSERT INTO db_logs (method, query, params, response_time, error, user_uuid, ip_address)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [
       method,
@@ -266,7 +321,7 @@ async function logDatabaseOperation(method, query, params, responseTime, error, 
       params ? JSON.stringify(params).substring(0, 500) : null,
       responseTime,
       error ? error.substring(0, 500) : null,
-      userId,
+      userUuid,
       ipAddress
     ]);
   } catch (logError) {
@@ -275,7 +330,7 @@ async function logDatabaseOperation(method, query, params, responseTime, error, 
 }
 
 // Enhanced database wrapper with logging
-async function executeQuery(method, query, params, userId, ipAddress) {
+async function executeQuery(method, query, params, userUuid, ipAddress) {
   const startTime = Date.now();
   let error = null;
   let result = null;
@@ -294,7 +349,7 @@ async function executeQuery(method, query, params, userId, ipAddress) {
     throw err;
   } finally {
     const responseTime = Date.now() - startTime;
-    await logDatabaseOperation(method, query, params, responseTime, error, userId, ipAddress);
+    await logDatabaseOperation(method, query, params, responseTime, error, userUuid, ipAddress);
   }
 
   return result;
@@ -406,9 +461,10 @@ async function main() {
       );
 
       // Create default shopping list
+      const listUuid = crypto.randomUUID();
       await db.run(
-        'INSERT INTO shopping_lists (user_id, name, icon) VALUES (?, ?, ?)',
-        result.lastID, 'Meine Einkaufsliste', '🛒'
+        'INSERT INTO shopping_lists (uuid, user_uuid, name, icon) VALUES (?, ?, ?, ?)',
+        listUuid, userUuid, 'Meine Einkaufsliste', '🛒'
       );
 
       res.status(201).json({ message: 'Benutzer erfolgreich registriert' });
@@ -441,7 +497,7 @@ async function main() {
 
       // Generate JWT
       const token = jwt.sign(
-        { userId: user.id, username: user.username, isAdmin: user.is_admin },
+        { userId: user.id, userUuid: user.uuid, username: user.username, isAdmin: user.is_admin },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -450,6 +506,7 @@ async function main() {
         token,
         user: {
           id: user.id,
+          uuid: user.uuid,
           username: user.username,
           isAdmin: user.is_admin
         }
@@ -457,6 +514,20 @@ async function main() {
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({ error: 'Anmeldung fehlgeschlagen' });
+    }
+  });
+
+  // Logout endpoint - add token to blacklist
+  app.post('/api/logout', authenticateTokenWithBlacklist, async (req, res) => {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (token) {
+        tokenBlacklist.add(token);
+      }
+      res.json({ message: 'Erfolgreich abgemeldet' });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({ error: 'Abmeldung fehlgeschlagen' });
     }
   });
 
@@ -489,8 +560,8 @@ async function main() {
   app.get('/api/lists', authenticateTokenWithBlacklist, async (req, res) => {
     try {
       const lists = await db.all(
-        'SELECT * FROM shopping_lists WHERE user_id = ? ORDER BY created_at DESC',
-        req.user.userId
+        'SELECT uuid, name, icon, created_at FROM shopping_lists WHERE user_uuid = ? ORDER BY created_at DESC',
+        req.user.userUuid
       );
       res.json(lists);
     } catch (error) {
@@ -508,12 +579,13 @@ async function main() {
         return res.status(400).json({ error: 'Listenname ist erforderlich' });
       }
 
-      const result = await db.run(
-        'INSERT INTO shopping_lists (user_id, name, icon) VALUES (?, ?, ?)',
-        req.user.userId, name, icon
+      const listUuid = crypto.randomUUID();
+      await db.run(
+        'INSERT INTO shopping_lists (uuid, user_uuid, name, icon) VALUES (?, ?, ?, ?)',
+        listUuid, req.user.userUuid, name, icon
       );
 
-      res.json({ id: result.lastID, name, icon });
+      res.json({ uuid: listUuid, name, icon });
     } catch (error) {
       console.error('Error creating list:', error);
       res.status(500).json({ error: 'Fehler beim Erstellen der Liste' });
@@ -521,21 +593,21 @@ async function main() {
   });
 
   // Delete shopping list
-  app.delete('/api/lists/:id', authenticateTokenWithBlacklist, async (req, res) => {
+  app.delete('/api/lists/:uuid', authenticateTokenWithBlacklist, async (req, res) => {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
       
       // Check if list belongs to user
       const list = await db.get(
-        'SELECT * FROM shopping_lists WHERE id = ? AND user_id = ?',
-        id, req.user.userId
+        'SELECT * FROM shopping_lists WHERE uuid = ? AND user_uuid = ?',
+        uuid, req.user.userUuid
       );
       
       if (!list) {
         return res.status(404).json({ error: 'Liste nicht gefunden' });
       }
 
-      await db.run('DELETE FROM shopping_lists WHERE id = ?', id);
+      await db.run('DELETE FROM shopping_lists WHERE uuid = ?', uuid);
       res.sendStatus(204);
     } catch (error) {
       console.error('Error deleting list:', error);
@@ -544,14 +616,14 @@ async function main() {
   });
 
   // Get articles for a specific list
-  app.get('/api/lists/:listId/articles', authenticateTokenWithBlacklist, async (req, res) => {
+  app.get('/api/lists/:listUuid/articles', authenticateTokenWithBlacklist, async (req, res) => {
     try {
-      const { listId } = req.params;
+      const { listUuid } = req.params;
       
       // Verify list belongs to user
       const list = await db.get(
-        'SELECT * FROM shopping_lists WHERE id = ? AND user_id = ?',
-        listId, req.user.userId
+        'SELECT * FROM shopping_lists WHERE uuid = ? AND user_uuid = ?',
+        listUuid, req.user.userUuid
       );
       
       if (!list) {
@@ -559,8 +631,8 @@ async function main() {
       }
 
       const articles = await db.all(
-        'SELECT * FROM articles WHERE list_id = ? ORDER BY created_at DESC',
-        listId
+        'SELECT uuid, name, category, icon, is_bought, created_at FROM articles WHERE list_uuid = ? ORDER BY created_at DESC',
+        listUuid
       );
       
       res.json(articles);
@@ -571,9 +643,9 @@ async function main() {
   });
 
   // Add article to list
-  app.post('/api/lists/:listId/articles', authenticateTokenWithBlacklist, async (req, res) => {
+  app.post('/api/lists/:listUuid/articles', authenticateTokenWithBlacklist, async (req, res) => {
     try {
-      const { listId } = req.params;
+      const { listUuid } = req.params;
       const { name, category, icon, comment = '' } = req.body;
 
       if (!name || !category) {
@@ -582,20 +654,21 @@ async function main() {
 
       // Verify list belongs to user
       const list = await db.get(
-        'SELECT * FROM shopping_lists WHERE id = ? AND user_id = ?',
-        listId, req.user.userId
+        'SELECT * FROM shopping_lists WHERE uuid = ? AND user_uuid = ?',
+        listUuid, req.user.userUuid
       );
       
       if (!list) {
         return res.status(404).json({ error: 'Liste nicht gefunden' });
       }
 
-      const result = await db.run(
-        'INSERT INTO articles (name, category, icon, comment, user_id, list_id) VALUES (?, ?, ?, ?, ?, ?)',
-        name, category, icon, comment, req.user.userId, listId
+      const articleUuid = crypto.randomUUID();
+      await db.run(
+        'INSERT INTO articles (uuid, name, category, icon, comment, user_uuid, list_uuid) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        articleUuid, name, category, icon, comment, req.user.userUuid, listUuid
       );
 
-      res.json({ id: result.lastID });
+      res.json({ uuid: articleUuid });
     } catch (error) {
       console.error('Error creating article:', error);
       res.status(500).json({ error: 'Fehler beim Hinzufügen des Artikels' });
@@ -603,15 +676,15 @@ async function main() {
   });
 
   // Update article
-  app.put('/api/articles/:id', authenticateTokenWithBlacklist, async (req, res) => {
+  app.put('/api/articles/:uuid', authenticateTokenWithBlacklist, async (req, res) => {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
       const { name, category, icon, comment, is_bought } = req.body;
 
       // Verify article belongs to user
       const article = await db.get(
-        'SELECT * FROM articles WHERE id = ? AND user_id = ?',
-        id, req.user.userId
+        'SELECT * FROM articles WHERE uuid = ? AND user_uuid = ?',
+        uuid, req.user.userUuid
       );
       
       if (!article) {
@@ -619,8 +692,8 @@ async function main() {
       }
 
       await db.run(
-        'UPDATE articles SET name=?, category=?, icon=?, comment=?, is_bought=? WHERE id=?',
-        name, category, icon, comment, is_bought ? 1 : 0, id
+        'UPDATE articles SET name=?, category=?, icon=?, comment=?, is_bought=? WHERE uuid=?',
+        name, category, icon, comment, is_bought ? 1 : 0, uuid
       );
 
       res.sendStatus(204);
@@ -631,21 +704,21 @@ async function main() {
   });
 
   // Delete article
-  app.delete('/api/articles/:id', authenticateTokenWithBlacklist, async (req, res) => {
+  app.delete('/api/articles/:uuid', authenticateTokenWithBlacklist, async (req, res) => {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
       
       // Verify article belongs to user
       const article = await db.get(
-        'SELECT * FROM articles WHERE id = ? AND user_id = ?',
-        id, req.user.userId
+        'SELECT * FROM articles WHERE uuid = ? AND user_uuid = ?',
+        uuid, req.user.userUuid
       );
       
       if (!article) {
         return res.status(404).json({ error: 'Artikel nicht gefunden' });
       }
 
-      await db.run('DELETE FROM articles WHERE id = ?', id);
+      await db.run('DELETE FROM articles WHERE uuid = ?', uuid);
       res.sendStatus(204);
     } catch (error) {
       console.error('Error deleting article:', error);
@@ -657,8 +730,8 @@ async function main() {
   app.get('/api/favorites', authenticateTokenWithBlacklist, async (req, res) => {
     try {
       const favorites = await db.all(
-        'SELECT * FROM favorites WHERE user_id = ? ORDER BY created_at DESC',
-        req.user.userId
+        'SELECT uuid, name, category, icon, comment, created_at FROM favorites WHERE user_uuid = ? ORDER BY created_at DESC',
+        req.user.userUuid
       );
       res.json(favorites);
     } catch (error) {
@@ -676,12 +749,13 @@ async function main() {
         return res.status(400).json({ error: 'Name und Kategorie sind erforderlich' });
       }
 
+      const favoriteUuid = crypto.randomUUID();
       await db.run(
-        'INSERT OR REPLACE INTO favorites (user_id, name, category, icon, comment) VALUES (?, ?, ?, ?, ?)',
-        req.user.userId, name, category, icon, comment
+        'INSERT INTO favorites (uuid, user_uuid, name, category, icon, comment) VALUES (?, ?, ?, ?, ?, ?)',
+        favoriteUuid, req.user.userUuid, name, category, icon, comment
       );
 
-      res.json({ message: 'Zu Favoriten hinzugefügt' });
+      res.json({ uuid: favoriteUuid, message: 'Zu Favoriten hinzugefügt' });
     } catch (error) {
       console.error('Error adding favorite:', error);
       res.status(500).json({ error: 'Fehler beim Hinzufügen zu Favoriten' });
@@ -689,13 +763,13 @@ async function main() {
   });
 
   // Remove from favorites
-  app.delete('/api/favorites/:id', authenticateTokenWithBlacklist, async (req, res) => {
+  app.delete('/api/favorites/:uuid', authenticateTokenWithBlacklist, async (req, res) => {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
       
       await db.run(
-        'DELETE FROM favorites WHERE id = ? AND user_id = ?',
-        id, req.user.userId
+        'DELETE FROM favorites WHERE uuid = ? AND user_uuid = ?',
+        uuid, req.user.userUuid
       );
       
       res.sendStatus(204);
@@ -719,7 +793,7 @@ async function main() {
       }
 
       // Verify current password
-      const user = await db.get('SELECT * FROM users WHERE id = ?', req.user.userId);
+      const user = await db.get('SELECT * FROM users WHERE uuid = ?', req.user.userUuid);
       if (!user) {
         return res.status(404).json({ error: 'Benutzer nicht gefunden' });
       }
@@ -735,8 +809,8 @@ async function main() {
 
       // Update password
       await db.run(
-        'UPDATE users SET password_hash = ? WHERE id = ?',
-        newPasswordHash, req.user.userId
+        'UPDATE users SET password_hash = ? WHERE uuid = ?',
+        newPasswordHash, req.user.userUuid
       );
 
       res.json({ message: 'Passwort erfolgreich geändert' });
@@ -756,15 +830,15 @@ async function main() {
       }
 
       // Check if username is already taken
-      const existingUser = await db.get('SELECT id FROM users WHERE username = ? AND id != ?', newUsername, req.user.userId);
+      const existingUser = await db.get('SELECT id FROM users WHERE username = ? AND uuid != ?', newUsername, req.user.userUuid);
       if (existingUser) {
         return res.status(400).json({ error: 'Benutzername bereits vergeben' });
       }
 
       // Update username
       await db.run(
-        'UPDATE users SET username = ? WHERE id = ?',
-        newUsername, req.user.userId
+        'UPDATE users SET username = ? WHERE uuid = ?',
+        newUsername, req.user.userUuid
       );
 
       res.json({ message: 'Benutzername erfolgreich geändert' });
@@ -780,9 +854,9 @@ async function main() {
       const articles = await db.all(`
         SELECT DISTINCT name, category, icon, comment 
         FROM articles 
-        WHERE user_id = ? 
+        WHERE user_uuid = ? 
         ORDER BY name ASC
-      `, req.user.userId);
+      `, req.user.userUuid);
       
       res.json(articles);
     } catch (error) {
@@ -795,11 +869,11 @@ async function main() {
   app.get('/api/standard-articles', authenticateTokenWithBlacklist, async (req, res) => {
     try {
       const articles = await db.all(`
-        SELECT id, name, category, icon, is_global, user_id
+        SELECT id, name, category, icon, is_global, user_uuid
         FROM standard_articles 
-        WHERE is_global = 1 OR user_id = ?
+        WHERE is_global = 1 OR user_uuid = ?
         ORDER BY category, name ASC
-      `, req.user.userId);
+      `, req.user.userUuid);
       
       res.json(articles);
     } catch (error) {
@@ -818,8 +892,8 @@ async function main() {
       }
 
       const result = await db.run(
-        'INSERT INTO standard_articles (name, category, icon, is_global, user_id) VALUES (?, ?, ?, 0, ?)',
-        name, category, icon, req.user.userId
+        'INSERT INTO standard_articles (name, category, icon, is_global, user_uuid) VALUES (?, ?, ?, 0, ?)',
+        name, category, icon, req.user.userUuid
       );
 
       res.json({ id: result.lastID });
@@ -839,8 +913,8 @@ async function main() {
 
       // Allow deletion of user's custom articles AND global ones (for flexibility)
       const result = await db.run(
-        'DELETE FROM standard_articles WHERE id = ? AND (user_id = ? OR is_global = 1)',
-        id, req.user.userId
+        'DELETE FROM standard_articles WHERE id = ? AND (user_uuid = ? OR is_global = 1)',
+        id, req.user.userUuid
       );
 
       if (result.changes === 0) {
@@ -865,8 +939,8 @@ async function main() {
 
       const placeholders = ids.map(() => '?').join(',');
       const result = await db.run(
-        `DELETE FROM standard_articles WHERE id IN (${placeholders}) AND (user_id = ? OR is_global = 1)`,
-        ...ids, req.user.userId
+        `DELETE FROM standard_articles WHERE id IN (${placeholders}) AND (user_uuid = ? OR is_global = 1)`,
+        ...ids, req.user.userUuid
       );
 
       res.json({ deleted: result.changes });
@@ -888,8 +962,8 @@ async function main() {
 
       // Allow updating of user's custom articles AND global ones (for flexibility)
       const result = await db.run(
-        'UPDATE standard_articles SET name = ?, category = ?, icon = ? WHERE id = ? AND (user_id = ? OR is_global = 1)',
-        name, category, icon, id, req.user.userId
+        'UPDATE standard_articles SET name = ?, category = ?, icon = ? WHERE id = ? AND (user_uuid = ? OR is_global = 1)',
+        name, category, icon, id, req.user.userUuid
       );
 
       if (result.changes === 0) {
@@ -907,11 +981,11 @@ async function main() {
   app.get('/api/categories', authenticateTokenWithBlacklist, async (req, res) => {
     try {
       const categories = await db.all(`
-        SELECT id, name, icon, is_global, user_id
+        SELECT uuid, name, icon, is_global, user_uuid
         FROM categories 
-        WHERE is_global = 1 OR user_id = ?
+        WHERE is_global = 1 OR user_uuid = ?
         ORDER BY name ASC
-      `, req.user.userId);
+      `, req.user.userUuid);
       
       res.json(categories);
     } catch (error) {
@@ -929,12 +1003,13 @@ async function main() {
         return res.status(400).json({ error: 'Name und Icon sind erforderlich' });
       }
 
-      const result = await db.run(
-        'INSERT INTO categories (name, icon, is_global, user_id) VALUES (?, ?, 0, ?)',
-        name, icon, req.user.userId
+      const categoryUuid = crypto.randomUUID();
+      await db.run(
+        'INSERT INTO categories (uuid, name, icon, is_global, user_uuid) VALUES (?, ?, ?, 0, ?)',
+        categoryUuid, name, icon, req.user.userUuid
       );
 
-      res.json({ id: result.lastID });
+      res.json({ uuid: categoryUuid });
     } catch (error) {
       if (error.message.includes('UNIQUE constraint failed')) {
         return res.status(400).json({ error: 'Diese Kategorie existiert bereits' });
@@ -945,9 +1020,9 @@ async function main() {
   });
 
   // Update custom category
-  app.put('/api/categories/:id', authenticateTokenWithBlacklist, async (req, res) => {
+  app.put('/api/categories/:uuid', authenticateTokenWithBlacklist, async (req, res) => {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
       const { name, icon } = req.body;
 
       if (!name || !icon) {
@@ -956,8 +1031,8 @@ async function main() {
 
       // Only allow updating of user's custom categories (not global ones)
       const result = await db.run(
-        'UPDATE categories SET name = ?, icon = ? WHERE id = ? AND user_id = ? AND is_global = 0',
-        name, icon, id, req.user.userId
+        'UPDATE categories SET name = ?, icon = ? WHERE uuid = ? AND user_uuid = ? AND is_global = 0',
+        name, icon, uuid, req.user.userUuid
       );
 
       if (result.changes === 0) {
@@ -972,14 +1047,14 @@ async function main() {
   });
 
   // Delete custom category
-  app.delete('/api/categories/:id', authenticateTokenWithBlacklist, async (req, res) => {
+  app.delete('/api/categories/:uuid', authenticateTokenWithBlacklist, async (req, res) => {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
 
       // Only allow deletion of user's custom categories (not global ones)
       const result = await db.run(
-        'DELETE FROM categories WHERE id = ? AND user_id = ? AND is_global = 0',
-        id, req.user.userId
+        'DELETE FROM categories WHERE uuid = ? AND user_uuid = ? AND is_global = 0',
+        uuid, req.user.userUuid
       );
 
       if (result.changes === 0) {
@@ -1084,17 +1159,18 @@ async function main() {
       const users = await db.all(`
         SELECT 
           u.id, 
+          u.uuid,
           u.username, 
           u.is_admin,
           u.created_at,
-          COUNT(DISTINCT sl.id) as list_count,
-          COUNT(DISTINCT a.id) as article_count,
-          COUNT(DISTINCT f.id) as favorite_count
+          COUNT(DISTINCT sl.uuid) as list_count,
+          COUNT(DISTINCT a.uuid) as article_count,
+          COUNT(DISTINCT f.uuid) as favorite_count
         FROM users u
-        LEFT JOIN shopping_lists sl ON u.id = sl.user_id
-        LEFT JOIN articles a ON u.id = a.user_id
-        LEFT JOIN favorites f ON u.id = f.user_id
-        GROUP BY u.id, u.username, u.is_admin, u.created_at
+        LEFT JOIN shopping_lists sl ON u.uuid = sl.user_uuid
+        LEFT JOIN articles a ON u.uuid = a.user_uuid
+        LEFT JOIN favorites f ON u.uuid = f.user_uuid
+        GROUP BY u.id, u.uuid, u.username, u.is_admin, u.created_at
         ORDER BY u.created_at DESC
       `);
       
@@ -1269,12 +1345,12 @@ async function main() {
           b.*,
           bc.confirmed_at IS NOT NULL as is_confirmed
         FROM broadcasts b
-        LEFT JOIN broadcast_confirmations bc ON b.id = bc.broadcast_id AND bc.user_id = ?
+        LEFT JOIN broadcast_confirmations bc ON b.id = bc.broadcast_id AND bc.user_uuid = ?
         WHERE b.is_active = 1 
         AND (b.expires_at IS NULL OR b.expires_at > datetime('now'))
         AND (b.requires_confirmation = 0 OR bc.confirmed_at IS NULL OR b.is_permanent = 1)
         ORDER BY b.created_at DESC
-      `, req.user.userId);
+      `, req.user.userUuid);
       
       res.json(broadcasts);
     } catch (error) {
@@ -1289,9 +1365,9 @@ async function main() {
       const { id } = req.params;
       
       await db.run(`
-        INSERT OR IGNORE INTO broadcast_confirmations (broadcast_id, user_id)
+        INSERT OR IGNORE INTO broadcast_confirmations (broadcast_id, user_uuid)
         VALUES (?, ?)
-      `, id, req.user.userId);
+      `, id, req.user.userUuid);
       
       res.json({ message: 'Nachricht bestätigt' });
     } catch (error) {
@@ -1344,6 +1420,16 @@ async function main() {
     res.json([]);
   });
 
+  // Test endpoint for automatic logout functionality
+  app.get('/api/test-invalid-session', authenticateTokenWithBlacklist, async (req, res) => {
+    // Simulate an invalid session by adding the current token to blacklist
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      tokenBlacklist.add(token);
+    }
+    res.status(401).json({ error: 'Token invalidated - testing auto logout' });
+  });
+
   app.post('/api/articles', async (req, res) => {
     res.status(401).json({ error: 'Authentication required' });
   });
@@ -1370,7 +1456,7 @@ async function main() {
           dl.*,
           u.username
         FROM db_logs dl
-        LEFT JOIN users u ON dl.user_id = u.id
+        LEFT JOIN users u ON dl.user_uuid = u.uuid
         ORDER BY dl.created_at DESC
         LIMIT ? OFFSET ?
       `, [limit, offset]);

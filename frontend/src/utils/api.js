@@ -4,6 +4,13 @@ const isDemoMode = window.location.hostname === 'ochtii.github.io' ||
 
 const API_BASE = isDemoMode ? '' : 'http://localhost:4000';
 
+// Global logout callback - will be set by the auth context
+let globalLogoutCallback = null;
+
+export function setGlobalLogoutCallback(callback) {
+  globalLogoutCallback = callback;
+}
+
 // Helper function to make API calls with demo fallback
 async function apiCall(endpoint, options = {}) {
   // Force demo mode for GitHub Pages and when DemoAPI is available
@@ -22,30 +29,63 @@ async function apiCall(endpoint, options = {}) {
       ...options.headers
     }
   });
+
+  // Check for authentication errors and trigger automatic logout
+  if (response.status === 401 || response.status === 403) {
+    // Clone the response so we can read it twice if needed
+    const clonedResponse = response.clone();
+    try {
+      const error = await clonedResponse.json();
+      if (error.error && (
+        error.error.includes('token') || 
+        error.error.includes('Invalid token') || 
+        error.error.includes('Token invalidated') ||
+        error.error.includes('Access token required')
+      )) {
+        console.warn('Session ungültig - automatisches Ausloggen:', error.error);
+        if (globalLogoutCallback) {
+          globalLogoutCallback();
+        }
+      }
+    } catch (e) {
+      // If we can't parse JSON, check for common authentication error patterns
+      const responseText = await response.clone().text();
+      if (responseText.includes('token') || responseText.includes('Unauthorized')) {
+        console.warn('Session ungültig - automatisches Ausloggen');
+        if (globalLogoutCallback) {
+          globalLogoutCallback();
+        }
+      }
+    }
+  }
+  
   return response;
 }
 
 // Auth API
 export async function loginUser(username, password) {
-  const response = await apiCall('/auth/login', {
+  const response = await apiCall('/login', {
     method: 'POST',
     body: JSON.stringify({ username, password })
   });
   
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Login failed');
+    throw new Error(error.error || error.message || 'Login failed');
   }
   
   return await response.json();
 }
 
-export async function logoutUser() {
+export async function logoutUser(token) {
   if (window.DemoAPI) {
     return window.DemoAPI.logout();
   }
   
-  const response = await apiCall('/auth/logout', { method: 'POST' });
+  const response = await apiCall('/logout', { 
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
   return response.ok;
 }
 
@@ -287,6 +327,18 @@ export async function registerUser(userData) {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || 'Registration failed');
+  }
+  
+  return await response.json();
+}
+
+// Generic fetch function for testing
+export async function fetchData(endpoint, options = {}) {
+  const response = await apiCall(endpoint, options);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || error.message || 'Request failed');
   }
   
   return await response.json();

@@ -95,7 +95,7 @@ export default function ArticleForm({ onAdded, currentList, token }) {
       const articleIcon = null; // Let backend handle icon selection
       const data = { name: name.trim(), category, icon: articleIcon, comment: comment.trim() };
       
-      await api.createArticle(currentList.id, data, token);
+      await api.createArticle(currentList.uuid, data, token);
       
       onAdded();
       loadArticleHistory(); // Refresh history
@@ -123,7 +123,7 @@ export default function ArticleForm({ onAdded, currentList, token }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="relative">
+        <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Artikelname *
           </label>
@@ -137,41 +137,39 @@ export default function ArticleForm({ onAdded, currentList, token }) {
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           />
           
-          {/* Show hint and quick favorites when field is empty */}
+          {/* Inline tip when field is empty */}
           {name.length === 0 && (
-            <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg">
-              <div className="p-3 border-b border-gray-700">
-                <div className="text-xs text-blue-300 mb-2">
-                  💡 Tipp: Beginne zu tippen, um gespeicherte Artikel als Vorschläge zu sehen
-                </div>
-                {favorites.length > 0 && (
-                  <div>
-                    <div className="text-xs text-gray-400 font-medium mb-2">⭐ Schnell hinzufügen aus Favoriten:</div>
-                    <div className="flex flex-wrap gap-1">
-                      {favorites.slice(0, 6).map((fav, index) => (
-                        <button
-                          key={index}
-                          onClick={() => selectSuggestion(fav)}
-                          className="text-xs bg-blue-900/30 text-blue-300 px-2 py-1 rounded hover:bg-blue-800/50 transition-colors"
-                        >
-                          {fav.icon || '📦'} {fav.name}
-                        </button>
-                      ))}
-                      {favorites.length > 6 && (
-                        <span className="text-xs text-gray-500 px-2 py-1">
-                          +{favorites.length - 6} weitere
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
+            <div className="mt-2 p-3 bg-gray-800/50 border border-gray-600 rounded-lg">
+              <div className="text-xs text-blue-300 mb-2">
+                💡 Tipp: Beginne zu tippen, um gespeicherte Artikel als Vorschläge zu sehen
               </div>
+              {favorites.length > 0 && (
+                <div>
+                  <div className="text-xs text-gray-400 font-medium mb-2">⭐ Schnell hinzufügen aus Favoriten:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {favorites.slice(0, 6).map((fav, index) => (
+                      <button
+                        key={index}
+                        onClick={() => selectSuggestion(fav)}
+                        className="text-xs bg-blue-900/30 text-blue-300 px-2 py-1 rounded hover:bg-blue-800/50 transition-colors"
+                      >
+                        {fav.icon || '📦'} {fav.name}
+                      </button>
+                    ))}
+                    {favorites.length > 6 && (
+                      <span className="text-xs text-gray-500 px-2 py-1">
+                        +{favorites.length - 6} weitere
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           
-          {/* Suggestions dropdown */}
+          {/* Inline suggestions dropdown */}
           {showSuggestions && (
-            <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+            <div className="mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
               <div className="px-3 py-2 bg-gray-700 border-b border-gray-600">
                 <div className="text-xs text-gray-300 font-medium">
                   📋 Passende Artikel ({filteredSuggestions.length})
@@ -222,7 +220,7 @@ export default function ArticleForm({ onAdded, currentList, token }) {
           >
             <option value="">Kategorie wählen</option>
             {categories.map(cat => (
-              <option key={cat.id} value={cat.name}>
+              <option key={cat.uuid || cat.name} value={cat.name}>
                 {cat.icon} {cat.name}
               </option>
             ))}

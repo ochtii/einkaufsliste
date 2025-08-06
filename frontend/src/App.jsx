@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider, useAuth, setGlobalToastCallback } from './contexts/AuthContext';
 import * as api from './utils/api';
 import DemoHeader from './components/DemoHeader';
 import LoginForm from './components/LoginForm';
@@ -12,9 +12,11 @@ import ProductManagement from './components/ProductManagement';
 import Admin from './components/Admin';
 import RegularAdminDashboard from './components/RegularAdminDashboard';
 import BroadcastDisplay from './components/BroadcastDisplay';
+import { useToast, ToastContainer } from './components/Toast';
 
 function MainApp() {
   const { user, logout, token } = useAuth();
+  const { toasts, addToast, removeToast } = useToast();
   const [currentList, setCurrentList] = useState(null);
   const [articles, setArticles] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -32,7 +34,7 @@ function MainApp() {
     try {
       setLoading(true);
       setError(null);
-      const articles = await api.fetchArticles(currentList.id, token);
+      const articles = await api.fetchArticles(currentList.uuid, token);
       setArticles(articles);
     } catch (err) {
       setError('Verbindungsfehler: ' + err.message);
@@ -50,6 +52,11 @@ function MainApp() {
       console.error('Error loading favorites:', err);
     }
   }, [token]);
+
+  // Register global toast callback for auto logout notifications
+  useEffect(() => {
+    setGlobalToastCallback(addToast);
+  }, [addToast]);
 
   useEffect(() => {
     if (user && currentList) {
@@ -75,9 +82,9 @@ function MainApp() {
     }
   }
 
-  async function handleRemoveFromFavorites(favoriteId) {
+  async function handleRemoveFromFavorites(favoriteUuid) {
     try {
-      await api.removeFromFavorites(favoriteId, token);
+      await api.removeFromFavorites(favoriteUuid, token);
       loadFavorites();
     } catch (err) {
       setError('Fehler beim Entfernen aus Favoriten: ' + err.message);
@@ -86,7 +93,7 @@ function MainApp() {
 
   async function handleToggleBought(article) {
     try {
-      await api.updateArticle(currentList.id, article.id, {
+      await api.updateArticle(currentList.uuid, article.uuid, {
         ...article,
         is_bought: !article.is_bought
       }, token);
@@ -97,9 +104,9 @@ function MainApp() {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(uuid) {
     try {
-      await api.deleteArticle(currentList.id, id, token);
+      await api.deleteArticle(currentList.uuid, uuid, token);
       loadArticles();
     } catch (err) {
       setError('Fehler beim Löschen: ' + err.message);
@@ -110,7 +117,7 @@ function MainApp() {
     if (!currentList) return;
     
     try {
-      await api.createArticle(currentList.id, {
+      await api.createArticle(currentList.uuid, {
         name: favorite.name,
         category: favorite.category,
         icon: favorite.icon,
@@ -209,6 +216,25 @@ function MainApp() {
                     className="btn-secondary text-sm w-full"
                   >
                     👤 Konto verwalten
+                  </button>
+                </div>
+              </div>
+              
+              {/* Test auto logout */}
+              <div className="border-t border-gray-700 pt-4">
+                <h3 className="text-white font-medium mb-2">🧪 Test-Funktionen</h3>
+                <div className="space-y-2">
+                  <button 
+                    onClick={async () => {
+                      try {
+                        await api.fetchData('/test-invalid-session', { headers: { 'Authorization': `Bearer ${token}` } });
+                      } catch (err) {
+                        console.log('Test erfolgreich - automatisches Ausloggen ausgelöst');
+                      }
+                    }}
+                    className="btn-secondary text-sm w-full text-yellow-400 border-yellow-600 hover:bg-yellow-600/20"
+                  >
+                    🔐 Session invalidieren (Test)
                   </button>
                 </div>
               </div>
@@ -348,6 +374,9 @@ function MainApp() {
           </div>
         </div>
       )}
+      
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

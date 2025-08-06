@@ -1,4 +1,5 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { logoutUser, setGlobalLogoutCallback } from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -10,12 +11,39 @@ export function useAuth() {
   return context;
 }
 
+// Global toast callback for auto logout notifications
+let globalToastCallback = null;
+
+export function setGlobalToastCallback(callback) {
+  globalToastCallback = callback;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(async (showMessage = true) => {
+    try {
+      if (token) {
+        await logoutUser(token);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      if (showMessage && globalToastCallback) {
+        globalToastCallback('Sie wurden automatisch ausgeloggt, da Ihre Session ungültig geworden ist.', 'warning', 8000);
+      }
+    }
+  }, [token]);
+
   useEffect(() => {
+    // Register global logout callback for automatic logout on invalid sessions
+    setGlobalLogoutCallback(() => logout(true));
+    
     // Check if token is valid on app start
     if (token) {
       // Decode token to get user info (simple check)
@@ -29,28 +57,20 @@ export function AuthProvider({ children }) {
           });
         } else {
           // Token expired
-          localStorage.removeItem('token');
-          setToken(null);
+          logout(false); // Don't show message for expired token on startup
         }
       } catch (error) {
         console.error('Invalid token:', error);
-        localStorage.removeItem('token');
-        setToken(null);
+        logout(false); // Don't show message for invalid token on startup
       }
     }
     setLoading(false);
-  }, [token]);
+  }, [token, logout]);
 
   const login = (token, user) => {
     localStorage.setItem('token', token);
     setToken(token);
     setUser(user);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
   };
 
   const value = {

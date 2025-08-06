@@ -15,7 +15,7 @@ export default function FavoriteList({ favorites, onSelect, onRemove }) {
     <div className="space-y-3">
       {favorites.map(favorite => (
         <div 
-          key={favorite.id} 
+          key={favorite.uuid} 
           className="bg-gray-800 border border-gray-700 rounded-lg p-3 transition-all duration-200 group"
         >
           <div className="flex items-center justify-between">
@@ -38,7 +38,7 @@ export default function FavoriteList({ favorites, onSelect, onRemove }) {
             </div>
             
             <button
-              onClick={() => onRemove(favorite.id)}
+              onClick={() => onRemove(favorite.uuid)}
               className="text-red-400 hover:text-red-300 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
               title="Aus Favoriten entfernen"
             >

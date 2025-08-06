@@ -139,7 +139,7 @@ export default function ArticleList({ articles, onToggleBought, onDelete, onAddT
               
               return (
                 <div 
-                  key={article.id} 
+                  key={article.uuid} 
                   className={`border rounded-lg p-4 transition-colors duration-200 ${
                     article.is_bought 
                       ? 'bg-green-900/20 border-green-800' 
@@ -198,7 +198,7 @@ export default function ArticleList({ articles, onToggleBought, onDelete, onAddT
                       </button>
                       
                       <button 
-                        onClick={() => onDelete(article.id)} 
+                        onClick={() => onDelete(article.uuid)} 
                         className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors duration-200"
                         title="Artikel löschen"
                       >

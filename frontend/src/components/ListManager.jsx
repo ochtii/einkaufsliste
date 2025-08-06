@@ -48,16 +48,16 @@ export default function ListManager({ onSelectList, currentList }) {
     }
   }
 
-  async function deleteList(listId) {
+  async function deleteList(listUuid) {
     if (!window.confirm('Liste wirklich löschen? Alle Artikel gehen verloren.')) return;
 
     try {
-      await api.deleteList(listId, token);
-      setLists(prev => prev.filter(list => list.id !== listId));
+      await api.deleteList(listUuid, token);
+      setLists(prev => prev.filter(list => list.uuid !== listUuid));
       
       // Select another list if current was deleted
-      if (currentList?.id === listId) {
-        const remainingLists = lists.filter(list => list.id !== listId);
+      if (currentList?.uuid === listUuid) {
+        const remainingLists = lists.filter(list => list.uuid !== listUuid);
         onSelectList(remainingLists[0] || null);
       }
     } catch (error) {
@@ -136,9 +136,9 @@ export default function ListManager({ onSelectList, currentList }) {
       <div className="space-y-2">
         {lists.map(list => (
           <div
-            key={list.id}
+            key={list.uuid}
             className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-              currentList?.id === list.id
+              currentList?.uuid === list.uuid
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-800 hover:bg-gray-700 text-gray-100'
             }`}
@@ -153,7 +153,7 @@ export default function ListManager({ onSelectList, currentList }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  deleteList(list.id);
+                  deleteList(list.uuid);
                 }}
                 className="text-red-400 hover:text-red-300 p-1 rounded"
                 title="Liste löschen"
