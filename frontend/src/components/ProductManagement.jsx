@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
+import * as api from '../utils/api';
 
 const ProductManagement = ({ onClose }) => {
   const [standardArticles, setStandardArticles] = useState([]);
@@ -32,16 +33,8 @@ const ProductManagement = ({ onClose }) => {
   const fetchStandardArticles = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/standard-articles', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const articles = await response.json();
-        setStandardArticles(articles);
-      }
+      const articles = await api.fetchStandardArticles(token);
+      setStandardArticles(articles);
     } catch (error) {
       console.error('Error fetching standard articles:', error);
     }
@@ -50,16 +43,8 @@ const ProductManagement = ({ onClose }) => {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/categories', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const cats = await response.json();
-        setCategories(cats);
-      }
+      const cats = await api.fetchCategories(token);
+      setCategories(cats);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
