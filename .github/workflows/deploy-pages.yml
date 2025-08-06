@@ -75,7 +75,7 @@ jobs:
         cp build/index.html build/app.html
         
         # Replace index.html with our landing page
-        cp public/index.html build/index.html
+        cp public/landing.html build/index.html
         
         # Ensure demo config is available in build directory
         cat > build/demo-config.js << 'EOF'
