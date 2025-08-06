@@ -11,6 +11,10 @@
     {
       "name": "Backend",
       "path": "./backend"
+    },
+    {
+      "name": "API",
+      "path": "./api"
     }
   ],
   "settings": {
@@ -51,6 +55,10 @@
       },
       {
         "directory": "./backend",
+        "changeProcessCWD": true
+      },
+      {
+        "directory": "./api",
         "changeProcessCWD": true
       }
     ]
@@ -105,6 +113,31 @@
         "command": "npm install",
         "options": {
           "cwd": "${workspaceFolder}/backend"
+        },
+        "group": "build"
+      },
+      {
+        "label": "Start API",
+        "type": "shell",
+        "command": "python main.py",
+        "options": {
+          "cwd": "${workspaceFolder}/api"
+        },
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Install API Dependencies",
+        "type": "shell",
+        "command": "pip install -r requirements.txt",
+        "options": {
+          "cwd": "${workspaceFolder}/api"
         },
         "group": "build"
       }

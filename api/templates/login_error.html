@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Error</title>
+    <meta charset="utf-8">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #1a1a1a; 
+            color: #fff; 
+            padding: 20px; 
+            text-align: center; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .error { 
+            background: #f44336; 
+            padding: 30px; 
+            border-radius: 10px; 
+            max-width: 400px; 
+            box-shadow: 0 4px 20px rgba(244, 67, 54, 0.3);
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+        }
+        p {
+            margin: 15px 0;
+            font-size: 16px;
+        }
+        a { 
+            color: #4CAF50; 
+            text-decoration: none; 
+            font-weight: bold;
+            padding: 10px 20px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        a:hover {
+            background: rgba(76, 175, 80, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="error">
+        <h2>❌ Login Failed</h2>
+        <p>Invalid password. Please try again.</p>
+        <p><a href="/admin">← Back to Login</a></p>
+    </div>
+</body>
+</html>
