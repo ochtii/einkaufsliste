@@ -139,79 +139,54 @@ jobs:
         fi
         
         # Create demo instructions
-        cat > demo-instructions.html << 'EOF'
-        <!DOCTYPE html>
-        <html lang="de">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Einkaufsliste Demo - Anleitung</title>
-            <style>
-                body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-                .demo-banner { background: #3b82f6; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-                .credentials { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 15px 0; }
-                .feature-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-                .feature-card { background: white; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; }
-            </style>
-        </head>
-        <body>
-            <div class="demo-banner">
-                <h1>🛒 Einkaufsliste Demo</h1>
-                <p>Willkommen zur Demo-Version der Einkaufsliste-Anwendung!</p>
-            </div>
-            
-            <h2>📋 Demo-Anmeldedaten</h2>
-            <div class="credentials">
-                <h3>🧑‍💼 Benutzer-Account:</h3>
-                <p><strong>Benutzername:</strong> demo</p>
-                <p><strong>Passwort:</strong> demo123</p>
-                
-                <h3>👨‍💻 Admin-Account:</h3>
-                <p><strong>Benutzername:</strong> admin</p>
-                <p><strong>Passwort:</strong> admin123</p>
-            </div>
-            
-            <h2>✨ Verfügbare Features</h2>
-            <div class="feature-list">
-                <div class="feature-card">
-                    <h3>📝 Einkaufslisten</h3>
-                    <p>Erstellen und verwalten Sie multiple Einkaufslisten</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🏷️ Kategorien</h3>
-                    <p>Organisieren Sie Artikel nach Kategorien mit Emojis</p>
-                </div>
-                <div class="feature-card">
-                    <h3>⭐ Favoriten</h3>
-                    <p>Speichern Sie häufig verwendete Artikel</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📄 Export</h3>
-                    <p>Exportieren Sie Listen als Textdateien</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🌙 Dark Theme</h3>
-                    <p>Moderne, responsive Benutzeroberfläche</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📱 Responsive</h3>
-                    <p>Funktioniert auf Desktop und Mobilgeräten</p>
-                </div>
-            </div>
-            
-            <h2>🚀 Zur Demo-App</h2>
-            <p><a href="index.html" style="display: inline-block; background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px;">Demo starten</a></p>
-            
-            <h2>📚 Mehr Informationen</h2>
-            <p>Vollständige Dokumentation und Quellcode:</p>
-            <ul>
-                <li><a href="https://github.com/ochtii/einkaufsliste">GitHub Repository</a></li>
-                <li><a href="https://github.com/ochtii/einkaufsliste#readme">README.md</a></li>
-                <li><a href="https://github.com/ochtii/einkaufsliste/blob/main/LICENSE">MIT License</a></li>
-            </ul>
-        </body>
-        </html>
-        EOF
+        echo '<!DOCTYPE html>' > demo-instructions.html
+        echo '<html lang="de">' >> demo-instructions.html
+        echo '<head>' >> demo-instructions.html
+        echo '    <meta charset="UTF-8">' >> demo-instructions.html
+        echo '    <meta name="viewport" content="width=device-width, initial-scale=1.0">' >> demo-instructions.html
+        echo '    <title>Einkaufsliste Demo - Anleitung</title>' >> demo-instructions.html
+        echo '    <style>' >> demo-instructions.html
+        echo '        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }' >> demo-instructions.html
+        echo '        .demo-banner { background: #3b82f6; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }' >> demo-instructions.html
+        echo '        .credentials { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 15px 0; }' >> demo-instructions.html
+        echo '        .feature-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }' >> demo-instructions.html
+        echo '        .feature-card { background: white; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; }' >> demo-instructions.html
+        echo '    </style>' >> demo-instructions.html
+        echo '</head>' >> demo-instructions.html
+        echo '<body>' >> demo-instructions.html
+        echo '    <div class="demo-banner">' >> demo-instructions.html
+        echo '        <h1>🛒 Einkaufsliste Demo</h1>' >> demo-instructions.html
+        echo '        <p>Willkommen zur Demo-Version der Einkaufsliste-Anwendung!</p>' >> demo-instructions.html
+        echo '    </div>' >> demo-instructions.html
+        echo '    <h2>📋 Demo-Anmeldedaten</h2>' >> demo-instructions.html
+        echo '    <div class="credentials">' >> demo-instructions.html
+        echo '        <h3>🧑‍💼 Benutzer-Account:</h3>' >> demo-instructions.html
+        echo '        <p><strong>Benutzername:</strong> demo</p>' >> demo-instructions.html
+        echo '        <p><strong>Passwort:</strong> demo123</p>' >> demo-instructions.html
+        echo '        <h3>👨‍💻 Admin-Account:</h3>' >> demo-instructions.html
+        echo '        <p><strong>Benutzername:</strong> admin</p>' >> demo-instructions.html
+        echo '        <p><strong>Passwort:</strong> admin123</p>' >> demo-instructions.html
+        echo '    </div>' >> demo-instructions.html
+        echo '    <h2>✨ Verfügbare Features</h2>' >> demo-instructions.html
+        echo '    <div class="feature-list">' >> demo-instructions.html
+        echo '        <div class="feature-card"><h3>📝 Einkaufslisten</h3><p>Erstellen und verwalten Sie multiple Einkaufslisten</p></div>' >> demo-instructions.html
+        echo '        <div class="feature-card"><h3>🏷️ Kategorien</h3><p>Organisieren Sie Artikel nach Kategorien mit Emojis</p></div>' >> demo-instructions.html
+        echo '        <div class="feature-card"><h3>⭐ Favoriten</h3><p>Speichern Sie häufig verwendete Artikel</p></div>' >> demo-instructions.html
+        echo '        <div class="feature-card"><h3>📄 Export</h3><p>Exportieren Sie Listen als Textdateien</p></div>' >> demo-instructions.html
+        echo '        <div class="feature-card"><h3>🌙 Dark Theme</h3><p>Moderne, responsive Benutzeroberfläche</p></div>' >> demo-instructions.html
+        echo '        <div class="feature-card"><h3>📱 Responsive</h3><p>Funktioniert auf Desktop und Mobilgeräten</p></div>' >> demo-instructions.html
+        echo '    </div>' >> demo-instructions.html
+        echo '    <h2>🚀 Zur Demo-App</h2>' >> demo-instructions.html
+        echo '    <p><a href="index.html" style="display: inline-block; background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px;">Demo starten</a></p>' >> demo-instructions.html
+        echo '    <h2>📚 Mehr Informationen</h2>' >> demo-instructions.html
+        echo '    <p>Vollständige Dokumentation und Quellcode:</p>' >> demo-instructions.html
+        echo '    <ul>' >> demo-instructions.html
+        echo '        <li><a href="https://github.com/ochtii/einkaufsliste">GitHub Repository</a></li>' >> demo-instructions.html
+        echo '        <li><a href="https://github.com/ochtii/einkaufsliste#readme">README.md</a></li>' >> demo-instructions.html
+        echo '        <li><a href="https://github.com/ochtii/einkaufsliste/blob/main/LICENSE">MIT License</a></li>' >> demo-instructions.html
+        echo '    </ul>' >> demo-instructions.html
+        echo '</body>' >> demo-instructions.html
+        echo '</html>' >> demo-instructions.html
         
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
