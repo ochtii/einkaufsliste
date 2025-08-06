@@ -27,47 +27,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Setup Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js 20.x
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: '20.x'
         
     - name: Cache npm dependencies
-      if: matrix.node-version == '20.x'
       uses: actions/cache@v3
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+        key: ${{ runner.os }}-node-20-${{ hashFiles('frontend/package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node-
+          ${{ runner.os }}-node-20-
         
     - name: Setup Pages
-      if: matrix.node-version == '20.x'
       uses: actions/configure-pages@v4
       
     - name: Install frontend dependencies
       run: |
         cd frontend
-        # Check if package-lock.json exists and is valid
-        if [ -f package-lock.json ]; then
-          echo "package-lock.json found, attempting npm ci..."
-          npm ci || {
-            echo "npm ci failed, falling back to npm install..."
-            rm -f package-lock.json
-            npm install
-          }
-        else
-          echo "package-lock.json not found, using npm install..."
-          npm install
-        fi
+        # Always use npm install to avoid version conflicts
+        echo "Using npm install for reliable dependency resolution..."
+        npm install
         
     - name: Build frontend for production
       run: |
@@ -79,7 +64,6 @@ jobs:
         PUBLIC_URL: /einkaufsliste
         
     - name: Create demo configuration
-      if: matrix.node-version == '20.x'
       run: |
         cd frontend
         
@@ -195,7 +179,6 @@ jobs:
         EOF
         
     - name: Upload artifact
-      if: matrix.node-version == '20.x'
       uses: actions/upload-pages-artifact@v3
       with:
         path: ./frontend/build
