@@ -64,9 +64,11 @@ echo    - Or go to Actions tab and manually run 'Deploy to GitHub Pages'
 echo    - Monitor the workflow progress
 echo.
 
-echo 4. 🌍 Access Your Demo:
-echo    - Frontend: https://ochtii.github.io/einkaufsliste
-echo    - Demo Page: https://ochtii.github.io/einkaufsliste/demo.html
+echo 4. 🌍 Überprüfe dein Deployment:
+echo    Nach 5-10 Minuten sollten diese URLs funktionieren:
+echo    • Landing Page: https://ochtii.github.io/einkaufsliste (Hauptseite)
+echo    • React App: https://ochtii.github.io/einkaufsliste/app.html
+echo    • Demo Info: https://ochtii.github.io/einkaufsliste/demo.html
 echo.
 
 echo 📊 Optional: Backend Deployment
