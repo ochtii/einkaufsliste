@@ -15,7 +15,25 @@ export default function LoginForm({ onSwitchToRegister, registrationSuccess, onC
     if (onClearRegistrationSuccess) onClearRegistrationSuccess();
 
     try {
-      const response = await fetch('http://localhost:4000/api/login', {
+      // Check if we're in demo mode (GitHub Pages)
+      const isDemoMode = window.location.hostname === 'ochtii.github.io' || 
+                        (window.location.hostname === 'localhost' && window.location.search.includes('demo=true'));
+      
+      if (isDemoMode && window.DemoAPI) {
+        // Use demo API for GitHub Pages
+        try {
+          const demoResult = window.DemoAPI.login(username, password);
+          login(demoResult.token, demoResult.user);
+          return;
+        } catch (demoError) {
+          setError('Ungültige Demo-Anmeldedaten. Verwende: demo/demo123 oder admin/admin123');
+          return;
+        }
+      }
+
+      // Regular backend login
+      const backendUrl = isDemoMode ? 'https://einkaufsliste-demo-backend.onrender.com' : 'http://localhost:4000';
+      const response = await fetch(`${backendUrl}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
