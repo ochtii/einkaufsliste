@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env pyt hon3
 """
 Simple GitHub Webhook Handler für Auto-Deployment
 Lauscht auf Port 9000 für GitHub Webhooks
