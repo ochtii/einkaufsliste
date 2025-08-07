@@ -509,6 +509,9 @@ import subprocess
 import hmac
 import hashlib
 import os
+import signal
+import sys
+import time
 from urllib.parse import parse_qs
 
 PORT = 9000
@@ -574,14 +577,53 @@ class WebhookHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
     
+    def do_GET(self):
+        if self.path == '/health':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(b'{"status": "healthy", "service": "webhook"}')
+        else:
+            self.send_response(404)
+            self.end_headers()
+    
     def log_message(self, format, *args):
         print(f"[{self.date_time_string()}] {format % args}")
 
+class ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+def signal_handler(sig, frame):
+    print('\\n🛑 Webhook Server wird beendet...')
+    sys.exit(0)
+
 if __name__ == "__main__":
-    with socketserver.TCPServer(("", PORT), WebhookHandler) as httpd:
-        print(f"🎣 Webhook Server läuft auf Port {PORT}")
-        print(f"📡 Listening for GitHub Webhooks on /webhook")
-        httpd.serve_forever()
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    try:
+        with ReusableTCPServer(("0.0.0.0", PORT), WebhookHandler) as httpd:
+            print(f"🎣 Webhook Server läuft auf Port {PORT}")
+            print(f"📡 Listening for GitHub Webhooks on /webhook")
+            print(f"💚 Health Check verfügbar auf /health")
+            httpd.serve_forever()
+    except OSError as e:
+        if e.errno == 98:  # Address already in use
+            print(f"❌ Port {PORT} bereits belegt. Versuche den Server zu stoppen und neu zu starten...")
+            time.sleep(2)
+            try:
+                with ReusableTCPServer(("0.0.0.0", PORT), WebhookHandler) as httpd:
+                    print(f"🎣 Webhook Server läuft auf Port {PORT} (Neustart)")
+                    httpd.serve_forever()
+            except Exception as e2:
+                print(f"❌ Fehler beim Starten des Webhook Servers: {e2}")
+                sys.exit(1)
+        else:
+            print(f"❌ Socket Fehler: {e}")
+            sys.exit(1)
+    except Exception as e:
+        print(f"❌ Unerwarteter Fehler: {e}")
+        sys.exit(1)
 EOF
 
     sudo chown einkaufsliste:einkaufsliste /home/einkaufsliste/webhook.py
@@ -603,12 +645,24 @@ module.exports.apps.push({
   instances: 1,
   autorestart: true,
   watch: false,
+  max_restarts: 10,
+  min_uptime: '10s',
+  kill_timeout: 5000,
+  restart_delay: 2000,
   error_file: '/home/einkaufsliste/logs/webhook-error.log',
   out_file: '/home/einkaufsliste/logs/webhook-out.log',
   log_file: '/home/einkaufsliste/logs/webhook.log'
 });
 EOF
     print_success "Webhook Server zu PM2 hinzugefügt"
+
+    # Webhook Management Script kopieren
+    if [ -f "./webhook-manager.sh" ]; then
+        cp ./webhook-manager.sh /home/einkaufsliste/
+        chmod +x /home/einkaufsliste/webhook-manager.sh
+        chown einkaufsliste:einkaufsliste /home/einkaufsliste/webhook-manager.sh
+        print_success "Webhook Management Script installiert"
+    fi
 
     # Firewall für Webhook
     sudo ufw allow 9000
