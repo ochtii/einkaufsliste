@@ -395,3 +395,4 @@ fix-nginx-config.sh
 package-lock.json
 api/package-lock.json
 venv/
+backend/create_db.js
