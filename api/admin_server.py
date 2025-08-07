@@ -2096,7 +2096,7 @@ class AdminHandler(BaseHTTPRequestHandler):
             target_ips = {
                 'google': '8.8.8.8',
                 'cloudflare': '1.1.1.1',
-                'frontend': 'localhost',  # Will ping localhost for frontend check
+                'frontend': '127.0.0.1',  # Will ping local frontend
             }
             
             target_ip = target_ips.get(target, target)
@@ -2178,7 +2178,7 @@ class AdminHandler(BaseHTTPRequestHandler):
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.settimeout(2)
-                    result = sock.connect_ex(('localhost', port))
+                    result = sock.connect_ex(('127.0.0.1', port))
                     sock.close()
                     
                     if result == 0:
@@ -2222,7 +2222,7 @@ class AdminHandler(BaseHTTPRequestHandler):
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.settimeout(2)
-                    result = sock.connect_ex(('localhost', 4000))
+                    result = sock.connect_ex(('127.0.0.1', 4000))
                     sock.close()
                     
                     end_time = time.time()
@@ -2341,12 +2341,12 @@ def main():
     cleanup_thread.start()
     
     # Start server
-    server = ThreadedHTTPServer(('localhost', 4200), AdminHandler)
+    server = ThreadedHTTPServer(('0.0.0.0', 5000), AdminHandler)
     
     logger.info("🧹 Starting session cleanup...")
-    logger.info("🚀 Einkaufsliste API Server v3 (Threaded) starting on http://localhost:4200")
-    logger.info("📍 Admin Panel: http://localhost:4200/admin")
-    logger.info("📖 API Docs: http://localhost:4200/docs")
+    logger.info("🚀 Einkaufsliste API Server v3 (Threaded) starting on http://54.93.86.38:5000")
+    logger.info("📍 Admin Panel: http://54.93.86.38:5000/admin")
+    logger.info("📖 API Docs: http://54.93.86.38:5000/docs")
     logger.info("🔑 Admin Password: admin123")
     
     try:
