@@ -232,7 +232,7 @@ async function createDB() {
   const testUuid = crypto.randomUUID();
   await db.run(
     'INSERT INTO users (uuid, username, password_hash, is_admin) VALUES (?, ?, ?, 0)',
-    testUuid, 'testuser', testPassword
+    testUuid, 'test', testPassword
   );
 
   // Create default shopping list for test user
@@ -247,6 +247,10 @@ async function createDB() {
   console.log('Categories:', await db.get('SELECT COUNT(*) as count FROM categories'));
   console.log('Standard Articles:', await db.get('SELECT COUNT(*) as count FROM standard_articles'));
   
+  // Show created users for debugging
+  const users = await db.all('SELECT username, is_admin FROM users');
+  console.log('Created users:', users);
+  
   await db.close();
 }
 
@@ -254,13 +258,13 @@ createDB().catch(console.error);
 EOF
 
 # Führe das Database Creation Script aus
-node create_db.js
+node create_db_esm.js
 
 if [ $? -eq 0 ]; then
     echo "✅ Database erfolgreich erstellt!"
     
     # Lösche das temporäre Script
-    rm create_db.js
+    rm create_db_esm.js
     
     # Starte Backend
     echo "Starte Backend..."
@@ -283,4 +287,4 @@ fi
 
 echo "🎉 Emergency Repair abgeschlossen!"
 echo "Login: admin / admin123"
-echo "Test: testuser / test123"
+echo "Test: test / test123"
