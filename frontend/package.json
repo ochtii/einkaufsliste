@@ -10,7 +10,7 @@
     "react-scripts": "^5.0.1"
   },
   "scripts": {
-    "start": "cross-env NODE_OPTIONS=--no-deprecation react-scripts start",
+    "start": "cross-env HOST=0.0.0.0 DANGEROUSLY_DISABLE_HOST_CHECK=true NODE_OPTIONS=--no-deprecation react-scripts start",
     "build": "cross-env NODE_OPTIONS=--no-deprecation react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
