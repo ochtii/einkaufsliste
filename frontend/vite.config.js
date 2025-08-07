@@ -8,7 +8,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://18.197.100.102:4000',
+        target: 'http://ochtii.run.place:4000',
         changeOrigin: true
       }
     }

@@ -238,7 +238,7 @@ sudo ufw status
 ./manage.sh logs webhook
 
 # Webhook manuell testen
-curl -X POST http://18.197.100.102:9000/webhook \
+curl -X POST http://ochtii.run.place:9000/webhook \
   -H "Content-Type: application/json" \
   -d '{"ref":"refs/heads/live","repository":{"name":"einkaufsliste"}}'
 ```

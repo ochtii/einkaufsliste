@@ -246,7 +246,7 @@ EOF
     cat > /etc/nginx/sites-available/einkaufsliste << 'EOF'
 server {
     listen 80;
-    server_name _;  # Ändere dies zu deiner Domain
+    server_name ochtii.run.place;  # Öffentliche Domain
     
     # Frontend (React) - Catch-all für alle anderen Routen
     location / {
@@ -303,6 +303,94 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_Set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Static files caching
+    location /static/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+EOF
+
+    # SSL-ready Nginx Konfiguration für Domain erstellen (wird nach SSL-Setup aktiviert)
+    cat > /etc/nginx/sites-available/einkaufsliste-ssl << 'EOF'
+server {
+    listen 80;
+    server_name ochtii.run.place;
+    
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name ochtii.run.place;
+    
+    # SSL Zertifikate (wird von Certbot automatisch eingefügt)
+    # ssl_certificate /etc/letsencrypt/live/ochtii.run.place/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/ochtii.run.place/privkey.pem;
+    
+    # SSL Konfiguration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    
+    # Frontend (React) - Catch-all für alle anderen Routen
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 86400;
+    }
+    
+    # Backend API - Weiterleitung an Backend Server
+    location /api/ {
+        proxy_pass http://127.0.0.1:4000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30;
+    }
+    
+    # Admin API - Weiterleitung an Python Admin Server
+    location /admin {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30;
+    }
+    
+    # Admin API mit Trailing Slash
+    location /admin/ {
+        proxy_pass http://127.0.0.1:5000/admin/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30;
+    }
+    
+    # API Docs - Direkte Weiterleitung an Python Server
+    location /docs {
+        proxy_pass http://127.0.0.1:5000/docs;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
     
     # Static files caching
@@ -536,11 +624,14 @@ EOF
     sudo systemctl enable pm2-einkaufsliste
     print_success "PM2 Autostart aktiviert"
 
-    # SSL mit Let's Encrypt (optional)
-    print_step "SSL-Zertifikat Setup (optional)..."
-    print_info "Für SSL-Zertifikat später ausführen:"
-    print_info "sudo apt install certbot python3-certbot-nginx"
-    print_info "sudo certbot --nginx -d deine-domain.com"
+    # SSL mit Let's Encrypt für Domain
+    print_step "SSL-Zertifikat Setup für ochtii.run.place..."
+    print_info "SSL-Zertifikat jetzt einrichten:"
+    print_info "1. sudo apt install certbot python3-certbot-nginx"
+    print_info "2. sudo certbot --nginx -d ochtii.run.place"
+    print_info "3. sudo ln -sf /etc/nginx/sites-available/einkaufsliste-ssl /etc/nginx/sites-enabled/einkaufsliste"
+    print_info "4. sudo systemctl reload nginx"
+    print_warning "Nach SSL-Setup wird HTTPS auf https://ochtii.run.place verfügbar sein"
 
     # Status anzeigen
     print_step "Service-Status wird geprüft..."
@@ -556,8 +647,9 @@ EOF
     sudo systemctl status nginx --no-pager -l
     echo ""
     print_info "Anwendung ist erreichbar unter:"
-    print_success "🌐 http://18.197.100.102"
-    print_success "🌐 http://$(curl -s ifconfig.me || echo '18.197.100.102')"
+    print_success "🌐 http://ochtii.run.place (Öffentliche Domain)"
+    print_success "🌐 http://18.197.100.102 (Direkte IP)"
+    print_success "🌐 http://$(curl -s ifconfig.me || echo '18.197.100.102') (Server IP)"
     echo ""
     print_info "Logs anzeigen:"
     print_info "  sudo -u einkaufsliste pm2 logs"
@@ -569,7 +661,7 @@ EOF
     print_warning "🔧 GitHub Webhook konfigurieren:"
     print_info "1. Gehe zu: https://github.com/ochtii/einkaufsliste/settings/hooks"
     print_info "2. Klicke 'Add webhook'"
-    print_info "3. Payload URL: http://$(curl -s ifconfig.me || echo 'DEINE-SERVER-IP'):9000/webhook"
+    print_info "3. Payload URL: http://ochtii.run.place:9000/webhook"
     print_info "4. Content type: application/json"
     print_info "5. Secret: einkaufsliste-webhook-secret"
     print_info "6. Events: Just the push event"

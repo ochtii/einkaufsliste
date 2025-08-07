@@ -2,7 +2,7 @@
 const isDemoMode = window.location.hostname === 'ochtii.github.io' || 
                   (window.location.hostname === 'localhost' && window.location.search.includes('demo=true'));
 
-const API_BASE = isDemoMode ? '' : 'http://18.197.100.102:4000';
+const API_BASE = isDemoMode ? '' : 'http://ochtii.run.place:4000';
 
 // Global logout callback - will be set by the auth context
 let globalLogoutCallback = null;
