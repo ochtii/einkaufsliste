@@ -270,15 +270,52 @@ if [ $? -eq 0 ]; then
     echo "Starte Backend..."
     pm2 start "npm start" --name "backend"
     
+    sleep 3
+    
+    # Starte Frontend
+    echo "Starte Frontend..."
+    cd /home/ubuntu/einkaufsliste/frontend
+    pm2 start "npm start" --name "frontend"
+    
+    sleep 3
+    
+    # Starte API
+    echo "Starte API..."
+    cd /home/ubuntu/einkaufsliste/api
+    pm2 start "python3 admin_server.py" --name "api"
+    
     sleep 5
     
-    # Teste Backend
+    # Zurück zum Backend für Tests
+    cd /home/ubuntu/einkaufsliste/backend
+    
+    # Teste alle Services
+    echo "Teste Services..."
+    
+    # Backend Test
     backend_status=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:4000/api/captcha" 2>/dev/null || echo "000")
     if [ "$backend_status" = "200" ]; then
         echo "✅ Backend läuft! (HTTP $backend_status)"
     else
         echo "❌ Backend Problem (HTTP $backend_status)"
-        pm2 logs backend --lines 10 --nostream
+        pm2 logs backend --lines 5 --nostream
+    fi
+    
+    # API Test
+    api_status=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:5000/api/stats" 2>/dev/null || echo "000")
+    if [ "$api_status" = "200" ]; then
+        echo "✅ API läuft! (HTTP $api_status)"
+    else
+        echo "❌ API Problem (HTTP $api_status)"
+        pm2 logs api --lines 5 --nostream
+    fi
+    
+    # Frontend Test
+    frontend_status=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000" 2>/dev/null || echo "000")
+    if [ "$frontend_status" = "200" ]; then
+        echo "✅ Frontend läuft! (HTTP $frontend_status)"
+    else
+        echo "⚠️ Frontend Problem (HTTP $frontend_status) - Möglicherweise noch nicht bereit"
     fi
 else
     echo "❌ Database Creation fehlgeschlagen!"
