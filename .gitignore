@@ -392,3 +392,6 @@ summary.md
 fix-nginx-line59.sh
 .gitignore
 fix-nginx-config.sh
+package-lock.json
+api/package-lock.json
+venv/
