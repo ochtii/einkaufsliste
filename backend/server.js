@@ -1538,8 +1538,8 @@ async function main() {
     }
   });
 
-  app.listen(4000, () => {
-    console.log('Backend läuft auf Port 4000');
+  app.listen(4000, '0.0.0.0', () => {
+    console.log('Backend läuft auf http://54.93.86.38:4000');
     console.log(`Server started at: ${new Date(serverStartTime).toISOString()}`);
   });
 
