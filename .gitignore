@@ -389,3 +389,6 @@ docs/dist/
 # End of .gitignore
 # =============================================================================
 summary.md
+fix-nginx-line59.sh
+.gitignore
+fix-nginx-config.sh
