@@ -27,6 +27,7 @@ sudo ./install.sh
 ```
 
 Das Skript installiert automatisch:
+
 - ✅ Node.js (LTS)
 - ✅ Python 3 + pip
 - ✅ PM2 (Prozess-Manager)
@@ -68,6 +69,7 @@ git push origin live
 ```
 
 Der Server wird automatisch:
+
 1. ✅ Code von GitHub pullen
 2. ✅ Abhängigkeiten prüfen/aktualisieren
 3. ✅ Frontend neu bauen
@@ -236,7 +238,7 @@ sudo ufw status
 ./manage.sh logs webhook
 
 # Webhook manuell testen
-curl -X POST http://54.93.86.38:9000/webhook \
+curl -X POST http://18.197.100.102:9000/webhook \
   -H "Content-Type: application/json" \
   -d '{"ref":"refs/heads/live","repository":{"name":"einkaufsliste"}}'
 ```

@@ -1437,7 +1437,7 @@ async function calculateAPIResponseTime() {
 async function calculateBackendResponseTime() {
     try {
         // Test with a simple HTTP request to the main backend (port 4000)
-        const testUrl = 'http://54.93.86.38:4000/api/ping'; // or similar simple endpoint
+        const testUrl = 'http://18.197.100.102:4000/api/ping'; // or similar simple endpoint
         
         const startTime = performance.now();
         const response = await fetch(testUrl, { mode: 'no-cors' });
@@ -1506,7 +1506,7 @@ function checkMainBackendStatus() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
     
-    fetch('http://54.93.86.38:4000/api/uptime', {
+    fetch('http://18.197.100.102:4000/api/uptime', {
         method: 'GET',
         mode: 'cors',
         signal: controller.signal

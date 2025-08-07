@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "homepage": "https://ochtii.github.io/einkaufsliste",
-  "proxy": "http://54.93.86.38:4000",
+  "proxy": "http://18.197.100.102:4000",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

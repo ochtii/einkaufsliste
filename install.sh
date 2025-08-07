@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Einkaufsliste Auto-Installation Script für Ubuntu 24.04
+#NC='\033[0m' # No Color
+
+# FunktionenInstallation Script für Ubuntu 24.04
 # Erstellt für Produktionsumgebung mit Auto-Deployment
 
 set -e
@@ -12,9 +14,26 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-
-# Funktionen für farbige Ausgaben
+NC='\033[0m' # No    # Admin API mit Trailing Slash
+    location /admin/ {
+        proxy_pass http://127.0.0.1:5000/admin/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30;
+    }
+    
+    # API Docs - Direkte Weiterleitung an Python Server
+    location /docs {
+        proxy_pass http://127.0.0.1:5000/docs;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    } für farbige Ausgaben
 print_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
@@ -246,7 +265,7 @@ server {
     listen 80;
     server_name _;  # Ändere dies zu deiner Domain
     
-    # Frontend (React)
+    # Frontend (React) - Catch-all für alle anderen Routen
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
@@ -257,35 +276,56 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 86400;
     }
     
-    # Backend API
+    # Backend API - Weiterleitung an Backend Server
     location /api/ {
-        proxy_pass http://127.0.0.1:4000;
+        proxy_pass http://127.0.0.1:4000/api/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30;
     }
     
-    # Admin API
-    location /admin/ {
+    # Admin API - Weiterleitung an Python Admin Server
+    location /admin {
         proxy_pass http://127.0.0.1:5000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30;
+    }
+    
+    # Admin API mit Trailing Slash
+    location /admin/ {
+        proxy_pass http://127.0.0.1:5000/admin/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_Set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30;
+    }
+    
+    # API Docs - Direkte Weiterleitung an Python Server
+    location /docs {
+        proxy_pass http://127.0.0.1:5000/docs;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_Set_header X-Forwarded-Proto $scheme;
     }
     
     # Static files caching
     location /static/ {
         expires 1y;
         add_header Cache-Control "public, immutable";
-    }
-}
-EOF
 
     sudo ln -sf /etc/nginx/sites-available/einkaufsliste /etc/nginx/sites-enabled/
     sudo rm -f /etc/nginx/sites-enabled/default
@@ -530,8 +570,8 @@ EOF
     sudo systemctl status nginx --no-pager -l
     echo ""
     print_info "Anwendung ist erreichbar unter:"
-    print_success "🌐 http://54.93.86.38"
-    print_success "🌐 http://$(curl -s ifconfig.me || echo '54.93.86.38')"
+    print_success "🌐 http://18.197.100.102"
+    print_success "🌐 http://$(curl -s ifconfig.me || echo '18.197.100.102')"
     echo ""
     print_info "Logs anzeigen:"
     print_info "  sudo -u einkaufsliste pm2 logs"

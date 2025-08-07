@@ -11,7 +11,7 @@ def get_complete_api_documentation():
         "title": "Einkaufsliste API Documentation",
         "version": "3.0",
         "description": "Complete REST API for Shopping List Management System",
-        "base_url": "http://54.93.86.38:5000",
+        "base_url": "http://18.197.100.102:5000",
         "authentication": {
             "type": "API Key",
             "header": "X-API-Key",
@@ -886,7 +886,7 @@ def get_complete_api_documentation():
             "authentication": {
                 "api_key": {
                     "description": "Include API key in request headers",
-                    "example": "curl -H 'X-API-Key: ak_1234567890abcdef' http://54.93.86.38:5000/api/users"
+                    "example": "curl -H 'X-API-Key: ak_1234567890abcdef' http://18.197.100.102:5000/api/users"
                 },
                 "session": {
                     "description": "Use session authentication for admin endpoints",

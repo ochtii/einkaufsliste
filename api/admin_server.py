@@ -2344,9 +2344,9 @@ def main():
     server = ThreadedHTTPServer(('0.0.0.0', 5000), AdminHandler)
     
     logger.info("🧹 Starting session cleanup...")
-    logger.info("🚀 Einkaufsliste API Server v3 (Threaded) starting on http://54.93.86.38:5000")
-    logger.info("📍 Admin Panel: http://54.93.86.38:5000/admin")
-    logger.info("📖 API Docs: http://54.93.86.38:5000/docs")
+    logger.info("🚀 Einkaufsliste API Server v3 (Threaded) starting on http://18.197.100.102:5000")
+    logger.info("📍 Admin Panel: http://18.197.100.102:5000/admin")
+    logger.info("📖 API Docs: http://18.197.100.102:5000/docs")
     logger.info("🔑 Admin Password: admin123")
     
     try:

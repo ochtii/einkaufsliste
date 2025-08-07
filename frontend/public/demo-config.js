@@ -17,7 +17,7 @@ window.DEMO_CONFIG = {
     },
     
     // Demo backend URL (when available)
-    backendUrl: isDemoMode ? 'https://einkaufsliste-demo-backend.onrender.com' : 'http://54.93.86.38:4000',
+    backendUrl: isDemoMode ? 'https://einkaufsliste-demo-backend.onrender.com' : 'http://18.197.100.102:4000',
     
     // Feature flags for demo
     features: {

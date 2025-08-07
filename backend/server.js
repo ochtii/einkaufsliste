@@ -1539,7 +1539,7 @@ async function main() {
   });
 
   app.listen(4000, '0.0.0.0', () => {
-    console.log('Backend läuft auf http://54.93.86.38:4000');
+    console.log('Backend läuft auf http://18.197.100.102:4000');
     console.log(`Server started at: ${new Date(serverStartTime).toISOString()}`);
   });
 
