@@ -19,11 +19,14 @@ rm -f db.sqlite*
 
 # Erstelle neue Database mit Node.js (nutzt das Backend Schema)
 echo "Erstelle neue Database..."
-cat > create_db.js << 'EOF'
-const { open } = require('sqlite');
-const sqlite3 = require('sqlite3');
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
+# 3. Erstelle neue Database mit ES Module Syntax
+print_info "Erstelle neue Database mit ES Module Syntax..."
+
+cat > create_db_esm.js << 'EOF'
+import { open } from 'sqlite';
+import sqlite3 from 'sqlite3';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 async function createDB() {
   console.log('Creating new database...');
