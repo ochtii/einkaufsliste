@@ -375,6 +375,42 @@ async function main() {
   const app = express();
   app.use(cors());
   app.use(express.json());
+  
+  // API Debug Logging Middleware
+  app.use((req, res, next) => {
+    const timestamp = new Date().toISOString();
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    console.log(`🔍 [${timestamp}] ${req.method} ${req.originalUrl}`);
+    console.log(`   📍 Client IP: ${clientIP}`);
+    console.log(`   📋 Headers: ${JSON.stringify(req.headers, null, 2)}`);
+    
+    if (req.body && Object.keys(req.body).length > 0) {
+      // Mask sensitive data in logs
+      const sanitizedBody = { ...req.body };
+      if (sanitizedBody.password) sanitizedBody.password = '***';
+      if (sanitizedBody.confirmPassword) sanitizedBody.confirmPassword = '***';
+      console.log(`   📦 Body: ${JSON.stringify(sanitizedBody, null, 2)}`);
+    }
+    
+    // Log response when it's sent
+    const originalSend = res.send;
+    res.send = function(data) {
+      const responseTime = Date.now() - req.startTime;
+      console.log(`   ✅ Response: ${res.statusCode} | Time: ${responseTime}ms`);
+      if (data && typeof data === 'string' && data.length < 500) {
+        console.log(`   📤 Response Data: ${data}`);
+      } else if (data) {
+        console.log(`   📤 Response Data: [${typeof data}] ${data.length || 'N/A'} bytes`);
+      }
+      console.log(`   ───────────────────────────────────────────────────`);
+      originalSend.call(this, data);
+    };
+    
+    req.startTime = Date.now();
+    next();
+  });
+  
   const db = await initDb();
 
   // Clear all existing sessions on server restart

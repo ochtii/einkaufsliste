@@ -100,6 +100,8 @@ class AdminHandler(BaseHTTPRequestHandler):
             else:
                 post_data = ""
             
+            print(f"🔍 Debug POST - Path: {path}, Data: {post_data}")
+            
             if path == '/admin/login':
                 self.handle_admin_login(post_data)
             elif path.startswith('/api/'):
@@ -250,7 +252,12 @@ class AdminHandler(BaseHTTPRequestHandler):
         try:
             if 'password=' in post_data:
                 password = post_data.split('password=')[1].split('&')[0]
-                password = password.replace('%20', ' ').replace('+', ' ')
+                # Proper URL decoding
+                import urllib.parse
+                password = urllib.parse.unquote_plus(password)
+                
+                print(f"🔍 Debug - Received password: '{password}' (length: {len(password)})")
+                print(f"🔍 Debug - Expected password: 'admin123' (length: {len('admin123')})")
                 
                 if password == 'admin123':
                     # Create session
@@ -885,15 +892,17 @@ class AdminHandler(BaseHTTPRequestHandler):
             
             # Map path to endpoint ID for permission checking
             endpoint_mapping = {
-                '/api/stats': 'stats',
-                '/api/users': 'users', 
-                '/api/articles': 'articles',
-                '/api/lists': 'lists',
-                '/api/categories': 'categories',
-                '/api/api-keys': 'api_keys',
-                '/api/endpoints': 'endpoints',
-                '/api/logs': 'logs',
-                '/api/database': 'database'
+                '/api/stats': 'stats_get',
+                '/api/users': 'users_get', 
+                '/api/articles': 'articles_get',
+                '/api/lists': 'lists_get',
+                '/api/categories': 'categories_get',
+                '/api/api-keys': 'api_keys_get',
+                '/api/endpoints': 'endpoints_get',
+                '/api/logs': 'logs_get',
+                '/api/database': 'database_info_get',
+                '/api/ping': 'ping_google_get',
+                '/api/uptime': 'uptime_get'
             }
             
             # Public endpoints that don't require authentication
