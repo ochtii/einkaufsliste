@@ -3,7 +3,7 @@
 # Webhook Server Management Script
 
 WEBHOOK_PORT=9000
-WEBHOOK_SCRIPT="/home/einkaufsliste/webhook.py"
+WEBHOOK_SCRIPT="/home/ubuntu/einkaufsliste/webhook.py"
 
 print_info() {
     echo -e "\033[0;34mℹ️  $1\033[0m"

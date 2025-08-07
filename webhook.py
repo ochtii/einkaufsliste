@@ -50,8 +50,8 @@ class WebhookHandler(http.server.BaseHTTPRequestHandler):
                     
                     # Execute deployment script
                     result = subprocess.run(
-                        ['/home/einkaufsliste/deploy.sh'],
-                        cwd='/home/einkaufsliste',
+                        ['/home/ubuntu/einkaufsliste/deploy.sh'],
+                        cwd='/home/ubuntu/einkaufsliste',
                         capture_output=True,
                         text=True
                     )

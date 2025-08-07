@@ -21,11 +21,13 @@ print_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
-echo "$(date): Auto-Deployment gestartet" >> /home/einkaufsliste/logs/deployment.log
+# Erstelle Log-Verzeichnis falls es nicht existiert
+mkdir -p /home/ubuntu/einkaufsliste/logs
+echo "$(date): Auto-Deployment gestartet" >> /home/ubuntu/einkaufsliste/logs/deployment.log
 
 print_info "🚀 Auto-Deployment gestartet..."
 
-cd /home/einkaufsliste/einkaufsliste
+cd /home/ubuntu/einkaufsliste
 
 # Git Pull
 print_info "Repository wird aktualisiert..."
@@ -67,8 +69,9 @@ fi
 
 # Services neu starten
 print_info "Services werden neu gestartet..."
+cd /home/ubuntu/einkaufsliste
 pm2 reload ecosystem.config.js
 print_success "Services neu gestartet"
 
 print_success "🎉 Auto-Deployment abgeschlossen!"
-echo "$(date): Auto-Deployment abgeschlossen" >> /home/einkaufsliste/logs/deployment.log
+echo "$(date): Auto-Deployment abgeschlossen" >> /home/ubuntu/einkaufsliste/logs/deployment.log
