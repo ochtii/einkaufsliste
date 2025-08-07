@@ -14,26 +14,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No    # Admin API mit Trailing Slash
-    location /admin/ {
-        proxy_pass http://127.0.0.1:5000/admin/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 30;
-    }
-    
-    # API Docs - Direkte Weiterleitung an Python Server
-    location /docs {
-        proxy_pass http://127.0.0.1:5000/docs;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    } für farbige Ausgaben
+NC='\033[0m' # No Color
+
+# Funktionen für farbige Ausgaben
 print_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
@@ -308,7 +291,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_Set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 30;
     }
     
@@ -326,6 +309,9 @@ server {
     location /static/ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+    }
+}
+EOF
 
     sudo ln -sf /etc/nginx/sites-available/einkaufsliste /etc/nginx/sites-enabled/
     sudo rm -f /etc/nginx/sites-enabled/default
