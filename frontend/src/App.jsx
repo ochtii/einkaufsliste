@@ -14,6 +14,14 @@ import RegularAdminDashboard from './components/RegularAdminDashboard';
 import BroadcastDisplay from './components/BroadcastDisplay';
 import { useToast, ToastContainer } from './components/Toast';
 
+// Frontend start time for uptime calculation
+const frontendStartTime = Date.now();
+
+// Store start time in sessionStorage for persistence across hot reloads
+if (!sessionStorage.getItem('frontendStartTime')) {
+  sessionStorage.setItem('frontendStartTime', frontendStartTime.toString());
+}
+
 function MainApp() {
   const { user, logout, token } = useAuth();
   const { toasts, addToast, removeToast } = useToast();

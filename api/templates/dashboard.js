@@ -39,6 +39,12 @@ function loadTabData(tabName) {
         case 'database':
             loadDatabaseInfo();
             break;
+        case 'docs':
+            loadDocumentation();
+            break;
+        case 'labor':
+            loadLaborTab();
+            break;
     }
 }
 
@@ -47,9 +53,9 @@ function loadStats() {
     fetch('/api/stats')
         .then(response => response.json())
         .then(data => {
-            document.getElementById('users-count').textContent = data.users || 0;
-            document.getElementById('lists-count').textContent = data.lists || 0;
-            document.getElementById('categories-count').textContent = data.categories || 0;
+            document.getElementById('api-keys-count').textContent = data.api_keys || 0;
+            document.getElementById('api-requests-count').textContent = data.api_requests || '0/0';
+            document.getElementById('endpoints-count').textContent = data.endpoints || '0/0';
             document.getElementById('db-size').textContent = data.db_size || 'Unknown';
             document.getElementById('db-modified').textContent = data.db_modified || 'Unknown';
         })
@@ -98,7 +104,7 @@ function loadApiKeys() {
                         <td><strong>${key.name}</strong></td>
                         <td><code>${key.key_preview}</code></td>
                         <td><small title="${Array.isArray(key.endpoint_permissions) ? key.endpoint_permissions.join(', ') : 'None'}">${permissions}</small></td>
-                        <td><strong style="color: #4CAF50;">${usageCount}</strong></td>
+                        <td><strong style="color: #4CAF50;" title="Admin sessions bypass API key validation">${usageCount}</strong></td>
                         <td><small>${rateLimit}</small></td>
                         <td><small title="${Array.isArray(key.ip_restrictions) ? key.ip_restrictions.join(', ') : 'None'}">${ipRestrictions}</small></td>
                         <td><small>${new Date(key.created_at).toLocaleDateString()}</small></td>
@@ -440,6 +446,13 @@ function showApiKeyDetails(keyId) {
         });
 }
 
+function getSuccessRateColor(successRateStr) {
+    const rate = parseFloat(successRateStr || '0');
+    if (rate >= 90) return '#4CAF50';
+    if (rate >= 70) return '#FF9800';
+    return '#f44336';
+}
+
 function renderApiKeyDetails(keyId, data) {
     const stats = data.stats || {};
     const logs = data.logs || [];
@@ -473,7 +486,7 @@ function renderApiKeyDetails(keyId, data) {
                 </div>
                 <div class="card" style="padding: 15px; background: #1a1a1a; border: 1px solid #444; border-radius: 8px;">
                     <h4 style="margin: 0 0 10px 0; color: #2196F3;">Success Rate</h4>
-                    <div style="font-size: 16px; font-weight: bold; color: ${parseFloat(stats.success_rate) >= 90 ? '#4CAF50' : parseFloat(stats.success_rate) >= 70 ? '#FF9800' : '#f44336'};">${stats.success_rate || '0%'}</div>
+                    <div style="font-size: 16px; font-weight: bold; color: ${getSuccessRateColor(stats.success_rate)};">${stats.success_rate || '0%'}</div>
                 </div>
                 <div class="card" style="padding: 15px; background: #1a1a1a; border: 1px solid #444; border-radius: 8px;">
                     <h4 style="margin: 0 0 10px 0; color: #2196F3;">Avg Response Time</h4>
@@ -636,8 +649,8 @@ function loadEndpoints() {
                     
                     let html = '<table class="table"><tr><th>Method</th><th>Path</th><th>Name</th><th>Category</th><th>Description</th><th>Status</th><th>Actions</th></tr>';
                     
-                    // Group endpoints by category
-                    const categories = ['Users', 'Articles', 'Lists', 'Categories', 'Admin', 'Database'];
+                    // Group endpoints by category - include ALL categories
+                    const categories = ['Auth', 'Users', 'Articles', 'Lists', 'Categories', 'Favorites', 'Admin', 'Database', 'Monitoring'];
                     categories.forEach(category => {
                         const categoryEndpoints = endpoints.filter(ep => ep.category === category);
                         if (categoryEndpoints.length > 0) {
@@ -666,8 +679,12 @@ function loadEndpoints() {
                     html += '</table>';
                     
                     // Add summary info
-                    const summary = `<div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                        <strong>📊 Endpoints Summary:</strong> Total ${endpoints.length} endpoints available across ${categories.filter(cat => endpoints.some(ep => ep.category === cat)).length} categories
+                    const summary = `<div style="margin-bottom: 15px; padding: 15px; background: #2d2d2d; border-radius: 8px; border: 1px solid #4CAF50;">
+                        <h3 style="color: #4CAF50; margin: 0 0 10px 0;">📊 Endpoints Summary</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div><strong style="color: #2196F3;">Total Endpoints:</strong> <span style="color: #4CAF50; font-size: 18px; font-weight: bold;">${endpoints.length}</span></div>
+                            <div><strong style="color: #2196F3;">Categories:</strong> <span style="color: #4CAF50; font-weight: bold;">${categories.filter(cat => endpoints.some(ep => ep.category === cat)).length}</span></div>
+                        </div>
                     </div>`;
                     
                     document.getElementById('endpoints-list').innerHTML = summary + html;
@@ -693,8 +710,12 @@ function loadEndpoints() {
                     });
                     html += '</table>';
                     
-                    const summary = `<div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                        <strong>📊 Endpoints Summary:</strong> Total ${endpoints.length} endpoints available
+                    const summary = `<div style="margin-bottom: 15px; padding: 15px; background: #2d2d2d; border-radius: 8px; border: 1px solid #4CAF50;">
+                        <h3 style="color: #4CAF50; margin: 0 0 10px 0;">📊 Endpoints Summary</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div><strong style="color: #2196F3;">Total Endpoints:</strong> <span style="color: #4CAF50; font-size: 18px; font-weight: bold;">${endpoints.length}</span></div>
+                            <div><strong style="color: #2196F3;">Available:</strong> <span style="color: #4CAF50; font-weight: bold;">${endpoints.length}</span></div>
+                        </div>
                     </div>`;
                     
                     document.getElementById('endpoints-list').innerHTML = summary + html;
@@ -735,12 +756,15 @@ function loadEndpoints() {
 // Helper function to get colors for categories
 function getCategoryColor(category) {
     const colors = {
+        'Auth': '#FF5722',
         'Users': '#2196F3',
         'Articles': '#4CAF50', 
         'Lists': '#FF9800',
         'Categories': '#9C27B0',
+        'Favorites': '#E91E63',
         'Admin': '#F44336',
-        'Database': '#607D8B'
+        'Database': '#607D8B',
+        'Monitoring': '#00BCD4'
     };
     return colors[category] || '#666';
 }
@@ -1029,5 +1053,593 @@ function backupDatabase() {
 document.addEventListener('DOMContentLoaded', function() {
     // Load initial data for overview tab
     loadStats();
-    loadRecentLogs();
 });
+
+// ===============================
+// LABOR TAB FUNCTIONS
+// ===============================
+
+let laborIntervals = {};
+
+function loadLaborTab() {
+    console.log('Loading Labor tab...');
+    
+    // Load API keys for selection
+    refreshApiKeys();
+    
+    // Load available endpoints
+    loadEndpointsForTesting();
+    
+    // Start monitoring intervals
+    startMonitoring();
+}
+
+// API Testing Functions
+function refreshApiKeys() {
+    fetch('/api/api-keys')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('selected-api-key');
+            select.innerHTML = '<option value="">No API Key Selected</option>';
+            
+            if (data.success && data.keys) {
+                data.keys.forEach(key => {
+                    if (key.is_active) {
+                        const option = document.createElement('option');
+                        option.value = key.id;
+                        option.textContent = `${key.name} (${key.key_preview})`;
+                        select.appendChild(option);
+                    }
+                });
+            }
+        })
+        .catch(err => console.error('Failed to load API keys:', err));
+}
+
+function loadSelectedKeyStats() {
+    const keyId = document.getElementById('selected-api-key').value;
+    const statsDiv = document.getElementById('selected-key-stats');
+    
+    if (!keyId) {
+        statsDiv.innerHTML = '<p>Select an API key to see statistics</p>';
+        return;
+    }
+    
+    fetch(`/api/api-keys/${keyId}/usage`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                statsDiv.innerHTML = `
+                    <div class="key-stats-grid">
+                        <div class="stat-item">
+                            <strong>Total Requests:</strong> ${data.stats.total_requests}
+                        </div>
+                        <div class="stat-item">
+                            <strong>Success Rate:</strong> ${data.stats.success_rate}
+                        </div>
+                        <div class="stat-item">
+                            <strong>Avg Response:</strong> ${data.stats.avg_response_time}
+                        </div>
+                        <div class="stat-item">
+                            <strong>Last Used:</strong> ${data.stats.last_used ? new Date(data.stats.last_used).toLocaleString() : 'Never'}
+                        </div>
+                    </div>
+                `;
+            } else {
+                statsDiv.innerHTML = '<p style="color: #f44336;">Failed to load key statistics</p>';
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load key stats:', err);
+            statsDiv.innerHTML = '<p style="color: #f44336;">Error loading statistics</p>';
+        });
+}
+
+function loadEndpointsForTesting() {
+    fetch('/api/endpoints/available')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('endpoint-checkboxes');
+            container.innerHTML = '';
+            
+            if (data.success && data.endpoints) {
+                data.endpoints.forEach(endpoint => {
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-item';
+                    div.innerHTML = `
+                        <label>
+                            <input type="checkbox" value="${endpoint.method}:${endpoint.path}" data-method="${endpoint.method}" data-path="${endpoint.path}">
+                            <span class="method-tag ${endpoint.method.toLowerCase()}">${endpoint.method}</span>
+                            ${endpoint.path}
+                            <small>${endpoint.description || ''}</small>
+                        </label>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        })
+        .catch(err => console.error('Failed to load endpoints:', err));
+}
+
+function runApiTests() {
+    const keyId = document.getElementById('selected-api-key').value;
+    const testType = document.querySelector('input[name="test-type"]:checked').value;
+    const selectedEndpoints = Array.from(document.querySelectorAll('#endpoint-checkboxes input:checked'));
+    
+    if (!keyId) {
+        alert('Please select an API key first');
+        return;
+    }
+    
+    if (selectedEndpoints.length === 0) {
+        alert('Please select at least one endpoint to test');
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('test-results');
+    resultsDiv.innerHTML = '<div class="test-running">🧪 Running tests...</div>';
+    
+    // Get the API key details for the actual key value
+    fetch(`/api/api-keys`)
+        .then(response => response.json())
+        .then(data => {
+            const selectedKey = data.keys.find(k => k.id == keyId);
+            if (!selectedKey) {
+                throw new Error('Selected API key not found');
+            }
+            
+            // Run tests sequentially
+            runTestSequence(selectedEndpoints, testType, selectedKey.key_preview);
+        })
+        .catch(err => {
+            resultsDiv.innerHTML = `<div class="test-error">❌ Error: ${err.message}</div>`;
+        });
+}
+
+async function runTestSequence(endpoints, testType, apiKey) {
+    const resultsDiv = document.getElementById('test-results');
+    resultsDiv.innerHTML = '<div class="test-results-container"></div>';
+    const container = resultsDiv.querySelector('.test-results-container');
+    
+    for (let i = 0; i < endpoints.length; i++) {
+        const endpoint = endpoints[i];
+        const method = endpoint.dataset.method;
+        const path = endpoint.dataset.path;
+        
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'test-result-item';
+        resultDiv.innerHTML = `
+            <div class="test-header">
+                <span class="method-tag ${method.toLowerCase()}">${method}</span>
+                <span class="path">${path}</span>
+                <span class="status">Testing...</span>
+            </div>
+            <div class="test-details">Running ${testType} test...</div>
+        `;
+        container.appendChild(resultDiv);
+        
+        try {
+            const result = await runSingleTest(method, path, testType, apiKey);
+            updateTestResult(resultDiv, result);
+        } catch (error) {
+            updateTestResult(resultDiv, {
+                success: false,
+                error: error.message,
+                statusCode: 0,
+                responseTime: 0
+            });
+        }
+        
+        // Small delay between tests
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+}
+
+async function runSingleTest(method, path, testType, apiKey) {
+    const startTime = performance.now();
+    
+    const options = {
+        method: method,
+        headers: {
+            'X-API-Key': apiKey,
+            'Content-Type': 'application/json'
+        }
+    };
+    
+    // Add test data for POST/PATCH requests
+    if (method === 'POST' || method === 'PATCH') {
+        options.body = JSON.stringify(getTestData(path));
+    }
+    
+    try {
+        const response = await fetch(path, options);
+        const endTime = performance.now();
+        const responseTime = endTime - startTime;
+        
+        let responseData;
+        try {
+            responseData = await response.json();
+        } catch {
+            responseData = await response.text();
+        }
+        
+        return {
+            success: response.ok,
+            statusCode: response.status,
+            responseTime: Math.round(responseTime),
+            responseData: responseData,
+            headers: Object.fromEntries(response.headers.entries())
+        };
+    } catch (error) {
+        const endTime = performance.now();
+        return {
+            success: false,
+            error: error.message,
+            statusCode: 0,
+            responseTime: Math.round(endTime - startTime)
+        };
+    }
+}
+
+function getTestData(path) {
+    // Return appropriate test data based on endpoint
+    if (path.includes('/users')) {
+        return { username: 'testuser', email: 'test@example.com' };
+    }
+    if (path.includes('/lists')) {
+        return { name: 'Test List', description: 'Test description' };
+    }
+    if (path.includes('/articles')) {
+        return { name: 'Test Article', category_id: 1 };
+    }
+    if (path.includes('/categories')) {
+        return { name: 'Test Category', emoji: '🧪' };
+    }
+    return {};
+}
+
+function updateTestResult(resultDiv, result) {
+    const statusClass = result.success ? 'success' : 'error';
+    const statusIcon = result.success ? '✅' : '❌';
+    
+    resultDiv.querySelector('.status').innerHTML = `${statusIcon} ${result.statusCode}`;
+    resultDiv.querySelector('.status').className = `status ${statusClass}`;
+    
+    const detailsHtml = `
+        <div class="test-response">
+            <div class="response-meta">
+                <span>Status: ${result.statusCode}</span>
+                <span>Time: ${result.responseTime}ms</span>
+                ${result.error ? `<span class="error">Error: ${result.error}</span>` : ''}
+            </div>
+            ${result.responseData ? `
+                <div class="response-body">
+                    <strong>Response:</strong>
+                    <pre><code>${JSON.stringify(result.responseData, null, 2)}</code></pre>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    resultDiv.querySelector('.test-details').innerHTML = detailsHtml;
+}
+
+// Monitoring Functions
+function startMonitoring() {
+    // Clear existing intervals
+    Object.values(laborIntervals).forEach(interval => clearInterval(interval));
+    laborIntervals = {};
+    
+    // Update ping tests every 30 seconds
+    laborIntervals.ping = setInterval(updatePingTests, 30000);
+    
+    // Update statistics every 10 seconds
+    laborIntervals.stats = setInterval(updateStatistics, 10000);
+    
+    // Update response times every 15 seconds
+    laborIntervals.responseTime = setInterval(() => {
+        calculateAPIResponseTime();
+        calculateBackendResponseTime();
+    }, 15000);
+    
+    // Initial loads
+    updatePingTests();
+    updateStatistics();
+    checkFrontendStatus();
+    calculateAPIResponseTime();
+    calculateBackendResponseTime();
+}
+
+function formatUptime(ms) {
+    const seconds = Math.floor(ms / 1000);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+async function updatePingTests() {
+    // Check backend status separately for each component
+    const backendStatus = document.getElementById('backend-status');
+    const apiBackendStatus = document.getElementById('api-backend-status');
+    
+    const isMainBackendOnline = backendStatus && backendStatus.innerHTML.includes('Running');
+    const isApiBackendOnline = apiBackendStatus && apiBackendStatus.innerHTML.includes('Running');
+    
+    // Main Backend (Einkaufsliste) ping tests - only if main backend is actually running
+    if (!isMainBackendOnline) {
+        setPingDisplay('google-ping', 'Server nicht erreichbar');
+        setPingDisplay('cloudflare-ping', 'Server nicht erreichbar');
+        setPingDisplay('backend-frontend-ping', 'Server nicht erreichbar');
+    } else {
+        // Test pings using main backend server (would need its own endpoints)
+        // For now, disable these since main backend is offline
+        setPingDisplay('google-ping', 'Server offline');
+        setPingDisplay('cloudflare-ping', 'Server offline');
+        setPingDisplay('backend-frontend-ping', 'Server offline');
+    }
+    
+    // API Backend ping tests - only if API backend is running
+    if (!isApiBackendOnline) {
+        setPingDisplay('api-google-ping', 'Server nicht erreichbar');
+        setPingDisplay('api-cloudflare-ping', 'Server nicht erreichbar');
+        setPingDisplay('api-avg-response-time', 'Server nicht erreichbar');
+    } else {
+        // Test Google ping for API backend
+        try {
+            const result = await fetch('/api/ping/google');
+            if (result.ok) {
+                const data = await result.json();
+                setPingDisplay('api-google-ping', formatPingResult(data));
+            } else {
+                throw new Error('Request failed');
+            }
+        } catch (err) {
+            setPingDisplay('api-google-ping', '<span class="error">Fehler</span>');
+        }
+        
+        // Test Cloudflare ping for API backend
+        try {
+            const result = await fetch('/api/ping/cloudflare');
+            if (result.ok) {
+                const data = await result.json();
+                setPingDisplay('api-cloudflare-ping', formatPingResult(data));
+            } else {
+                throw new Error('Request failed');
+            }
+        } catch (err) {
+            setPingDisplay('api-cloudflare-ping', '<span class="error">Fehler</span>');
+        }
+        
+        // Calculate and display average response time for API backend
+        await calculateAPIResponseTime();
+    }
+}
+
+async function calculateAPIResponseTime() {
+    try {
+        const startTime = performance.now();
+        const response = await fetch('/api/stats');
+        const endTime = performance.now();
+        
+        if (response.ok) {
+            const responseTime = endTime - startTime;
+            setPingDisplay('api-avg-response-time', `<span class="ping-time">${responseTime.toFixed(1)}ms</span><br><small>Last request</small>`);
+        } else {
+            setPingDisplay('api-avg-response-time', '<span class="error">Fehler</span>');
+        }
+    } catch (err) {
+        setPingDisplay('api-avg-response-time', '<span class="error">Fehler</span>');
+    }
+}
+
+async function calculateBackendResponseTime() {
+    try {
+        // Test with a simple HTTP request to the main backend (port 4000)
+        const testUrl = 'http://localhost:4000/api/ping'; // or similar simple endpoint
+        
+        const startTime = performance.now();
+        const response = await fetch(testUrl, { mode: 'no-cors' });
+        const endTime = performance.now();
+        
+        const responseTime = endTime - startTime;
+        setPingDisplay('backend-avg-response-time', `<span class="ping-time">${responseTime.toFixed(1)}ms</span><br><small>Last request</small>`);
+    } catch (err) {
+        // If we can't reach the backend directly, show unavailable
+        setPingDisplay('backend-avg-response-time', '<span class="error">Backend nicht erreichbar</span>');
+    }
+}
+
+function setPingDisplay(elementId, content) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerHTML = content;
+    }
+}
+
+function formatPingResult(data) {
+    if (data.success) {
+        if (data.average_time) {
+            return `<span class="ping-time">${data.average_time.toFixed(1)}ms</span><br><small>${data.results.length} pings</small>`;
+        } else if (data.results && data.results.length > 0) {
+            const avgPing = data.results.reduce((sum, r) => sum + r.time, 0) / data.results.length;
+            return `<span class="ping-time">${avgPing.toFixed(1)}ms</span><br><small>${data.results.length} pings</small>`;
+        } else {
+            return '<span class="ping-time">OK</span>';
+        }
+    } else {
+        return `<span class="error">${data.error || 'Fehler'}</span>`;
+    }
+}
+
+function updateStatistics() {
+    // Try to fetch backend statistics first to determine if API server is online
+    fetch('/api/stats/detailed')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // API Server is online - update API backend statistics
+                updateApiBackendStatus(true, data);
+                
+                // Check if main backend (port 4000) is reachable for its own stats
+                checkMainBackendStatus();
+            } else {
+                throw new Error('API Server returned error');
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load API backend stats:', err);
+            // API Server is offline - update both to offline
+            updateBackendStatus(false);
+            updateApiBackendStatus(false);
+        });
+}
+
+function checkMainBackendStatus() {
+    // Try to reach the main backend on port 4000 with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+    
+    fetch('http://localhost:4000/api/uptime', {
+        method: 'GET',
+        mode: 'cors',
+        signal: controller.signal
+    })
+        .then(response => {
+            clearTimeout(timeoutId);
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error(`Main backend not reachable: ${response.status}`);
+            }
+        })
+        .then(data => {
+            // Main backend is online
+            updateBackendStatus(true, data);
+        })
+        .catch(err => {
+            clearTimeout(timeoutId);
+            // Main backend is offline - this is expected, suppress console noise
+            if (err.name !== 'AbortError' && !err.message.includes('Failed to fetch')) {
+                console.warn('Main backend offline (expected):', err.message);
+            }
+            updateBackendStatus(false);
+        });
+}
+
+function checkFrontendStatus() {
+    // Check if backend is online first
+    const backendStatus = document.getElementById('backend-status');
+    const isBackendOnline = backendStatus && backendStatus.innerHTML.includes('Running');
+    
+    if (!isBackendOnline) {
+        const statusDiv = document.getElementById('frontend-status');
+        const uptimeDiv = document.getElementById('frontend-uptime');
+        if (statusDiv) statusDiv.innerHTML = '<span class="status-dot red"></span><span>Server nicht erreichbar</span>';
+        if (uptimeDiv) uptimeDiv.textContent = 'Server nicht erreichbar';
+        return;
+    }
+    
+    // Try to ping the frontend through backend
+    fetch('/api/frontend/status')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const statusDiv = document.getElementById('frontend-status');
+            const uptimeDiv = document.getElementById('frontend-uptime');
+            
+            if (data.success) {
+                if (statusDiv) statusDiv.innerHTML = '<span class="status-dot green"></span><span>Running</span>';
+                
+                // For frontend, we could use sessionStorage start time
+                const frontendStartTime = sessionStorage.getItem('frontendStartTime');
+                if (frontendStartTime && uptimeDiv) {
+                    const uptime = Date.now() - parseInt(frontendStartTime);
+                    uptimeDiv.textContent = formatUptime(uptime);
+                }
+            } else {
+                if (statusDiv) statusDiv.innerHTML = '<span class="status-dot red"></span><span>Offline</span>';
+                if (uptimeDiv) uptimeDiv.textContent = 'Offline';
+            }
+        })
+        .catch(err => {
+            const statusDiv = document.getElementById('frontend-status');
+            const uptimeDiv = document.getElementById('frontend-uptime');
+            if (statusDiv) statusDiv.innerHTML = '<span class="status-dot red"></span><span>Nicht erreichbar</span>';
+            if (uptimeDiv) uptimeDiv.textContent = 'Nicht erreichbar';
+        });
+}
+
+function updateBackendStatus(isOnline, data = null) {
+    const statusDiv = document.getElementById('backend-status');
+    const uptimeDiv = document.getElementById('backend-uptime');
+    const totalRequestsDiv = document.getElementById('total-requests');
+    const totalErrorsDiv = document.getElementById('total-errors');
+    const memoryUsageDiv = document.getElementById('memory-usage');
+    
+    if (statusDiv) {
+        if (isOnline && data) {
+            statusDiv.innerHTML = '<span class="status-dot green"></span><span>Running</span>';
+            
+            // Update uptime with real server uptime
+            if (data.uptime_seconds && uptimeDiv) {
+                uptimeDiv.textContent = formatUptime(data.uptime_seconds * 1000);
+            }
+            
+            // Update statistics
+            if (totalRequestsDiv) totalRequestsDiv.textContent = data.total_requests || 0;
+            if (totalErrorsDiv) totalErrorsDiv.textContent = data.total_errors || 0;
+            if (memoryUsageDiv) memoryUsageDiv.textContent = data.memory_usage || 'N/A';
+        } else {
+            statusDiv.innerHTML = '<span class="status-dot red"></span><span>Server nicht erreichbar</span>';
+            
+            // Set all stats to "Server nicht erreichbar"
+            if (totalRequestsDiv) totalRequestsDiv.textContent = 'Server nicht erreichbar';
+            if (totalErrorsDiv) totalErrorsDiv.textContent = 'Server nicht erreichbar';
+            if (memoryUsageDiv) memoryUsageDiv.textContent = 'Server nicht erreichbar';
+            if (uptimeDiv) uptimeDiv.textContent = 'Server nicht erreichbar';
+        }
+    }
+}
+
+function updateApiBackendStatus(isOnline, data = null) {
+    const statusDiv = document.getElementById('api-backend-status');
+    const uptimeDiv = document.getElementById('api-backend-uptime');
+    const totalRequestsDiv = document.getElementById('api-total-requests');
+    const totalErrorsDiv = document.getElementById('api-total-errors');
+    const memoryUsageDiv = document.getElementById('api-memory-usage');
+    
+    if (statusDiv) {
+        if (isOnline && data) {
+            statusDiv.innerHTML = '<span class="status-dot green"></span><span>Running</span>';
+            
+            // Update uptime with real server uptime
+            if (data.uptime_seconds && uptimeDiv) {
+                uptimeDiv.textContent = formatUptime(data.uptime_seconds * 1000);
+            }
+            
+            // Update statistics
+            if (totalRequestsDiv) totalRequestsDiv.textContent = data.total_requests || 0;
+            if (totalErrorsDiv) totalErrorsDiv.textContent = data.total_errors || 0;
+            if (memoryUsageDiv) memoryUsageDiv.textContent = data.memory_usage || 'N/A';
+        } else {
+            statusDiv.innerHTML = '<span class="status-dot red"></span><span>Server nicht erreichbar</span>';
+            
+            // Set all stats to "Server nicht erreichbar"
+            if (totalRequestsDiv) totalRequestsDiv.textContent = 'Server nicht erreichbar';
+            if (totalErrorsDiv) totalErrorsDiv.textContent = 'Server nicht erreichbar';
+            if (memoryUsageDiv) memoryUsageDiv.textContent = 'Server nicht erreichbar';
+            if (uptimeDiv) uptimeDiv.textContent = 'Server nicht erreichbar';
+        }
+    }
+}

@@ -19,6 +19,8 @@
             <button class="tab" onclick="showTab('users')">👥 Users</button>
             <button class="tab" onclick="showTab('logs')">📋 Logs</button>
             <button class="tab" onclick="showTab('database')">💾 Database</button>
+            <button class="tab" onclick="showTab('docs')">📖 Docs</button>
+            <button class="tab" onclick="showTab('labor')">🧪 Labor</button>
         </div>
         
         <div class="tab-content">
@@ -27,16 +29,16 @@
                 <h2 class="section-title">System Overview</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-number" id="users-count">-</div>
-                        <div class="stat-label">Users</div>
+                        <div class="stat-number" id="api-keys-count">-</div>
+                        <div class="stat-label">API Keys</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="lists-count">-</div>
-                        <div class="stat-label">Shopping Lists</div>
+                        <div class="stat-number" id="api-requests-count">-</div>
+                        <div class="stat-label">API Requests (Today/Total)</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="categories-count">-</div>
-                        <div class="stat-label">Categories</div>
+                        <div class="stat-number" id="endpoints-count">-</div>
+                        <div class="stat-label">Endpoints (Active/Total)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">✅</div>
@@ -167,6 +169,246 @@
                 <h2 class="section-title">Database Management</h2>
                 <div id="database-info">Loading...</div>
             </div>
+            
+            <!-- Documentation Tab -->
+            <div id="docs" class="tab-pane">
+                <h2 class="section-title">📖 API Documentation</h2>
+                
+                <div class="docs-header">
+                    <p>Complete documentation for all API endpoints with examples and detailed explanations.</p>
+                    <div class="docs-actions">
+                        <button class="btn" onclick="openPublicDocs()">🌐 Open Public Documentation</button>
+                        <button class="btn btn-secondary" onclick="refreshDocumentation()">🔄 Refresh</button>
+                    </div>
+                </div>
+                
+                <div class="docs-overview">
+                    <div class="docs-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="docs-endpoints-count">-</div>
+                            <div class="stat-label">Total Endpoints</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="docs-categories-count">-</div>
+                            <div class="stat-label">Categories</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="docs-last-updated">-</div>
+                            <div class="stat-label">Last Updated</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="docs-content">
+                    <h3 class="subsection-title">📋 API Categories</h3>
+                    <div id="docs-categories" class="docs-categories">
+                        Loading documentation...
+                    </div>
+                    
+                    <!-- Inline endpoint details section -->
+                    <div id="endpoint-details-section" class="endpoint-details-section" style="display: none;">
+                        <h3 class="subsection-title">📄 Endpoint Details</h3>
+                        <div id="endpoint-details-content" class="endpoint-details-content">
+                            <!-- Detailed endpoint information will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="docs-quick-start">
+                    <h3 class="subsection-title">🚀 Quick Start</h3>
+                    <div class="code-example">
+                        <h4>Basic Authentication</h4>
+                        <pre><code>curl -H "X-API-Key: YOUR_API_KEY" http://localhost:4200/api/stats</code></pre>
+                    </div>
+                    <div class="code-example">
+                        <h4>Example Request</h4>
+                        <pre><code>POST /api/articles
+Content-Type: application/json
+X-API-Key: YOUR_API_KEY
+
+{
+  "name": "Example Article",
+  "category": "Electronics",
+  "price": 99.99
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Labor Tab -->
+            <div id="labor" class="tab-pane">
+                <h2 class="section-title">🧪 Labor - Testing & Monitoring</h2>
+                
+                <!-- API Test Zone -->
+                <div class="section">
+                    <h3 class="subsection-title">🔬 API Testzone</h3>
+                    
+                    <!-- Auth Section -->
+                    <div class="test-section">
+                        <h4>🔑 Authentication</h4>
+                        <div class="auth-controls">
+                            <div class="api-key-selector">
+                                <label>Select API Key:</label>
+                                <select id="selected-api-key" onchange="loadSelectedKeyStats()">
+                                    <option value="">No API Key Selected</option>
+                                </select>
+                                <button class="btn btn-secondary" onclick="refreshApiKeys()">🔄 Refresh</button>
+                            </div>
+                            <div id="selected-key-stats" class="key-stats">
+                                <p>Select an API key to see statistics</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Test Configuration -->
+                    <div class="test-section">
+                        <h4>🎯 Test Configuration</h4>
+                        <div class="test-config">
+                            <div class="endpoint-selection">
+                                <label>Select Endpoints:</label>
+                                <div id="endpoint-checkboxes" class="checkbox-grid">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                            <div class="test-type-selection">
+                                <label>Test Type:</label>
+                                <div class="test-type-options">
+                                    <label><input type="radio" name="test-type" value="quick" checked> 🚀 Quick Check</label>
+                                    <label><input type="radio" name="test-type" value="full"> 🔍 Full Check</label>
+                                    <label><input type="radio" name="test-type" value="performance"> ⚡ Performance Check</label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="runApiTests()">▶️ Run Tests</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Test Results -->
+                    <div class="test-section">
+                        <h4>📊 Test Results</h4>
+                        <div id="test-results" class="test-results">
+                            <p>No tests run yet. Select endpoints and run tests to see results.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Backend Monitoring -->
+                <div class="section">
+                    <h3 class="subsection-title">🖥️ Backend (Einkaufsliste)</h3>
+                    <div class="monitoring-grid">
+                        <div class="monitor-card">
+                            <h4>📊 Status</h4>
+                            <div id="backend-status" class="status-indicator">
+                                <span class="status-dot green"></span>
+                                <span>Running</span>
+                            </div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>⏱️ Uptime</h4>
+                            <div id="backend-uptime" class="uptime-display">00:00:00</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>🌐 Google Ping</h4>
+                            <div id="google-ping" class="ping-display">Testing...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>☁️ Cloudflare Ping</h4>
+                            <div id="cloudflare-ping" class="ping-display">Testing...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>🔗 Backend ↔ Frontend</h4>
+                            <div id="backend-frontend-ping" class="ping-display">Testing...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>⚡ AVG Response Time</h4>
+                            <div id="backend-avg-response-time" class="ping-display">Calculating...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>📈 Statistics</h4>
+                            <div id="backend-stats" class="stats-display">
+                                <div>Requests: <span id="total-requests">0</span></div>
+                                <div>Errors: <span id="total-errors">0</span></div>
+                                <div>Memory: <span id="memory-usage">N/A</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- API Backend Monitoring -->
+                <div class="section">
+                    <h3 class="subsection-title">⚙️ Backend (API)</h3>
+                    <div class="monitoring-grid">
+                        <div class="monitor-card">
+                            <h4>📊 Status</h4>
+                            <div id="api-backend-status" class="status-indicator">
+                                <span class="status-dot green"></span>
+                                <span>Running</span>
+                            </div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>⏱️ Uptime</h4>
+                            <div id="api-backend-uptime" class="uptime-display">00:00:00</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>🌐 Google Ping</h4>
+                            <div id="api-google-ping" class="ping-display">Testing...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>☁️ Cloudflare Ping</h4>
+                            <div id="api-cloudflare-ping" class="ping-display">Testing...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>⚡ AVG Response Time</h4>
+                            <div id="api-avg-response-time" class="ping-display">Calculating...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>📈 Statistics</h4>
+                            <div id="api-backend-stats" class="stats-display">
+                                <div>API Calls: <span id="api-total-requests">0</span></div>
+                                <div>Errors: <span id="api-total-errors">0</span></div>
+                                <div>Memory: <span id="api-memory-usage">N/A</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Frontend Monitoring -->
+                <div class="section">
+                    <h3 class="subsection-title">🌐 Frontend (Einkaufsliste)</h3>
+                    <div class="monitoring-grid">
+                        <div class="monitor-card">
+                            <h4>📊 Status</h4>
+                            <div id="frontend-status" class="status-indicator">
+                                <span class="status-dot yellow"></span>
+                                <span>Checking...</span>
+                            </div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>⏱️ Uptime</h4>
+                            <div id="frontend-uptime" class="uptime-display">00:00:00</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>🌐 Google Ping</h4>
+                            <div id="frontend-google-ping" class="ping-display">Testing...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>☁️ Cloudflare Ping</h4>
+                            <div id="frontend-cloudflare-ping" class="ping-display">Testing...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>🔗 Frontend ↔ Backend</h4>
+                            <div id="frontend-backend-ping" class="ping-display">Testing...</div>
+                        </div>
+                        <div class="monitor-card">
+                            <h4>📈 Statistics</h4>
+                            <div id="frontend-stats" class="stats-display">
+                                <div>Page Views: <span id="page-views">0</span></div>
+                                <div>Load Time: <span id="load-time">N/A</span></div>
+                                <div>Status: <span id="frontend-health">Healthy</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -181,5 +423,6 @@
     </div>
 
     <script src="/templates/dashboard.js"></script>
+    <script src="/templates/docs_functions.js"></script>
 </body>
 </html>

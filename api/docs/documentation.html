@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einkaufsliste API Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+            padding: 40px 0;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 10px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #161b22;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #30363d;
+        }
+
+        .nav h3 {
+            color: #238636;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .nav-item {
+            background: #0d1117;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #e6edf3;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background: #21262d;
+            border-color: #238636;
+            transform: translateY(-2px);
+        }
+
+        .category {
+            background: #161b22;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid #30363d;
+            overflow: hidden;
+        }
+
+        .category-header {
+            background: #21262d;
+            padding: 20px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .category-title {
+            color: #238636;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .category-description {
+            color: #8b949e;
+            font-size: 1rem;
+        }
+
+        .endpoint {
+            border-bottom: 1px solid #30363d;
+            padding: 0;
+        }
+
+        .endpoint:last-child {
+            border-bottom: none;
+        }
+
+        .endpoint-header {
+            padding: 20px;
+            cursor: pointer;
+            background: #161b22;
+            transition: background 0.2s;
+        }
+
+        .endpoint-header:hover {
+            background: #1c2128;
+        }
+
+        .endpoint-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
+
+        .method-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .method-get { background: #2ea043; color: white; }
+        .method-post { background: #1f6feb; color: white; }
+        .method-patch { background: #9a6700; color: white; }
+        .method-delete { background: #da3633; color: white; }
+        .method-put { background: #8250df; color: white; }
+
+        .endpoint-path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 1rem;
+            color: #e6edf3;
+        }
+
+        .endpoint-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e6edf3;
+        }
+
+        .endpoint-description {
+            color: #8b949e;
+            margin-top: 5px;
+        }
+
+        .endpoint-auth {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #1f6feb;
+            color: white;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            margin-top: 10px;
+        }
+
+        .endpoint-details {
+            padding: 0 20px 20px 20px;
+            background: #0d1117;
+            display: none;
+        }
+
+        .endpoint-details.active {
+            display: block;
+        }
+
+        .detail-section {
+            margin-bottom: 25px;
+        }
+
+        .detail-section h4 {
+            color: #238636;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 5px;
+        }
+
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .json-key {
+            color: #79c0ff;
+        }
+
+        .json-string {
+            color: #a5d6ff;
+        }
+
+        .json-number {
+            color: #79c0ff;
+        }
+
+        .json-boolean {
+            color: #ffab70;
+        }
+
+        .parameters-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .parameters-table th,
+        .parameters-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .parameters-table th {
+            background: #21262d;
+            color: #238636;
+            font-weight: 600;
+        }
+
+        .required-badge {
+            background: #da3633;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        .optional-badge {
+            background: #8b949e;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        .response-code {
+            background: #2ea043;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .response-code.error {
+            background: #da3633;
+        }
+
+        .info-box {
+            background: #1c2128;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box h3 {
+            color: #238636;
+            margin-bottom: 15px;
+        }
+
+        .error-codes {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .error-code {
+            background: #da3633;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .toggle-icon {
+            margin-left: auto;
+            transition: transform 0.2s;
+        }
+
+        .toggle-icon.active {
+            transform: rotate(180deg);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .endpoint-info {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .endpoint-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Einkaufsliste API</h1>
+            <p>Complete REST API Documentation v3.0</p>
+        </div>
+
+        <div class="nav">
+            <h3>📋 Quick Navigation</h3>
+            <div class="nav-grid">
+                <a href="#auth" class="nav-item">🔐 Authentication</a>
+                <a href="#users" class="nav-item">👥 Users</a>
+                <a href="#articles" class="nav-item">📦 Articles</a>
+                <a href="#lists" class="nav-item">📝 Lists</a>
+                <a href="#categories" class="nav-item">🏷️ Categories</a>
+                <a href="#favorites" class="nav-item">⭐ Favorites</a>
+                <a href="#admin" class="nav-item">⚙️ Admin</a>
+                <a href="#database" class="nav-item">💾 Database</a>
+                <a href="#monitoring" class="nav-item">📊 Monitoring</a>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>🔑 Authentication</h3>
+            <p><strong>Base URL:</strong> <code>http://localhost:4200</code></p>
+            <p><strong>Authentication:</strong> API Key in header <code>X-API-Key</code> or Admin Session</p>
+            <p><strong>Rate Limiting:</strong> 60 requests per minute (configurable per API key)</p>
+        </div>
+
+        <div class="info-box">
+            <h3>📊 API Statistics</h3>
+            <p><strong>Total Endpoints:</strong> 59</p>
+            <p><strong>Categories:</strong> 9</p>
+            <p><strong>Authentication Methods:</strong> API Key, JWT Token, Admin Session</p>
+        </div>
+
+        <div id="documentation-content">
+            <!-- Content will be loaded dynamically -->
+        </div>
+
+        <div class="info-box">
+            <h3>🚨 Error Codes</h3>
+            <div class="error-codes">
+                <div class="error-code">400</div>
+                <div>Bad Request - Invalid input data or malformed request</div>
+                <div class="error-code">401</div>
+                <div>Unauthorized - Authentication required or invalid credentials</div>
+                <div class="error-code">403</div>
+                <div>Forbidden - Insufficient permissions for the requested operation</div>
+                <div class="error-code">404</div>
+                <div>Not Found - Requested resource does not exist</div>
+                <div class="error-code">405</div>
+                <div>Method Not Allowed - HTTP method not supported for this endpoint</div>
+                <div class="error-code">422</div>
+                <div>Unprocessable Entity - Request data validation failed</div>
+                <div class="error-code">429</div>
+                <div>Too Many Requests - Rate limit exceeded</div>
+                <div class="error-code">500</div>
+                <div>Internal Server Error - Server-side error occurred</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load documentation content
+        async function loadDocumentation() {
+            try {
+                const response = await fetch('/api/docs/data');
+                const docs = await response.json();
+                renderDocumentation(docs);
+            } catch (error) {
+                console.error('Failed to load documentation:', error);
+                document.getElementById('documentation-content').innerHTML = 
+                    '<div class="info-box"><h3>❌ Error</h3><p>Failed to load API documentation</p></div>';
+            }
+        }
+
+        function renderDocumentation(docs) {
+            const container = document.getElementById('documentation-content');
+            let html = '';
+
+            for (const [categoryName, categoryInfo] of Object.entries(docs.categories)) {
+                html += `
+                    <div class="category" id="${categoryName.toLowerCase()}">
+                        <div class="category-header">
+                            <h2 class="category-title">${getCategoryIcon(categoryName)} ${categoryName}</h2>
+                            <p class="category-description">${categoryInfo.description}</p>
+                        </div>
+                `;
+
+                categoryInfo.endpoints.forEach((endpoint, index) => {
+                    html += renderEndpoint(endpoint, categoryName, index);
+                });
+
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+            attachEventListeners();
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'Auth': '🔐',
+                'Users': '👥',
+                'Articles': '📦',
+                'Lists': '📝',
+                'Categories': '🏷️',
+                'Favorites': '⭐',
+                'Admin': '⚙️',
+                'Database': '💾',
+                'Monitoring': '📊'
+            };
+            return icons[category] || '📄';
+        }
+
+        function renderEndpoint(endpoint, category, index) {
+            const endpointId = `${category.toLowerCase()}-${index}`;
+            
+            return `
+                <div class="endpoint">
+                    <div class="endpoint-header" onclick="toggleEndpoint('${endpointId}')">
+                        <div class="endpoint-info">
+                            <div class="endpoint-title">
+                                <span class="method-badge method-${endpoint.method.toLowerCase()}">${endpoint.method}</span>
+                                <span class="endpoint-path">${endpoint.path}</span>
+                            </div>
+                            <div class="endpoint-name">${endpoint.name}</div>
+                            <div class="endpoint-description">${endpoint.description}</div>
+                            <span class="endpoint-auth">${endpoint.authentication}</span>
+                        </div>
+                        <div class="toggle-icon" id="icon-${endpointId}">▼</div>
+                    </div>
+                    <div class="endpoint-details" id="details-${endpointId}">
+                        ${renderEndpointDetails(endpoint)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEndpointDetails(endpoint) {
+            let html = '';
+
+            // Parameters
+            if (endpoint.parameters && Object.keys(endpoint.parameters).length > 0) {
+                html += `
+                    <div class="detail-section">
+                        <h4>📋 Parameters</h4>
+                        <table class="parameters-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                for (const [paramName, paramInfo] of Object.entries(endpoint.parameters)) {
+                    html += `
+                        <tr>
+                            <td><code>${paramName}</code></td>
+                            <td>${paramInfo.type}</td>
+                            <td>
+                                ${paramInfo.required ? 
+                                    '<span class="required-badge">Required</span>' : 
+                                    '<span class="optional-badge">Optional</span>'
+                                }
+                            </td>
+                            <td>${paramInfo.description}</td>
+                        </tr>
+                    `;
+                }
+                
+                html += '</tbody></table></div>';
+            }
+
+            // Request Body
+            if (endpoint.request_body) {
+                html += `
+                    <div class="detail-section">
+                        <h4>📤 Request Body</h4>
+                        <p><strong>Content-Type:</strong> ${endpoint.request_body.content_type}</p>
+                        <p><strong>Required:</strong> ${endpoint.request_body.required ? 'Yes' : 'No'}</p>
+                `;
+                
+                if (endpoint.request_body.schema) {
+                    html += '<h5>Schema:</h5>';
+                    html += '<table class="parameters-table"><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>';
+                    
+                    for (const [fieldName, fieldInfo] of Object.entries(endpoint.request_body.schema)) {
+                        html += `
+                            <tr>
+                                <td><code>${fieldName}</code></td>
+                                <td>${fieldInfo.type}</td>
+                                <td>
+                                    ${fieldInfo.required ? 
+                                        '<span class="required-badge">Required</span>' : 
+                                        '<span class="optional-badge">Optional</span>'
+                                    }
+                                </td>
+                                <td>${fieldInfo.description || ''}</td>
+                            </tr>
+                        `;
+                    }
+                    
+                    html += '</tbody></table>';
+                }
+                
+                if (endpoint.request_body.example) {
+                    html += '<h5>Example:</h5>';
+                    html += `<div class="code-block">${JSON.stringify(endpoint.request_body.example, null, 2)}</div>`;
+                }
+                
+                html += '</div>';
+            }
+
+            // Response
+            if (endpoint.response) {
+                html += '<div class="detail-section"><h4>📥 Response</h4>';
+                
+                for (const [statusCode, responseInfo] of Object.entries(endpoint.response)) {
+                    const isError = parseInt(statusCode) >= 400;
+                    html += `
+                        <div style="margin-bottom: 20px;">
+                            <h5>
+                                <span class="response-code ${isError ? 'error' : ''}">${statusCode}</span>
+                                ${responseInfo.description}
+                            </h5>
+                            ${responseInfo.example ? 
+                                `<div class="code-block">${JSON.stringify(responseInfo.example, null, 2)}</div>` : 
+                                ''
+                            }
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+            }
+
+            return html;
+        }
+
+        function toggleEndpoint(endpointId) {
+            const details = document.getElementById(`details-${endpointId}`);
+            const icon = document.getElementById(`icon-${endpointId}`);
+            
+            if (details.classList.contains('active')) {
+                details.classList.remove('active');
+                icon.classList.remove('active');
+            } else {
+                details.classList.add('active');
+                icon.classList.add('active');
+            }
+        }
+
+        function attachEventListeners() {
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('.nav-item').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const target = document.getElementById(targetId);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        // Load documentation when page loads
+        document.addEventListener('DOMContentLoaded', loadDocumentation);
+    </script>
+</body>
+</html>

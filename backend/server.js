@@ -8,6 +8,9 @@ import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
+// Server start time for uptime calculation
+const serverStartTime = Date.now();
+
 async function initDb() {
   const db = await open({
     filename: './db.sqlite',
@@ -1499,7 +1502,21 @@ async function main() {
     }
   });
 
-  app.listen(4000, () => console.log('Backend läuft auf Port 4000'));
+  app.listen(4000, () => {
+    console.log('Backend läuft auf Port 4000');
+    console.log(`Server started at: ${new Date(serverStartTime).toISOString()}`);
+  });
+
+  // Add uptime endpoint
+  app.get('/api/uptime', (req, res) => {
+    const uptime = Date.now() - serverStartTime;
+    res.json({
+      success: true,
+      uptime: uptime,
+      startTime: serverStartTime,
+      currentTime: Date.now()
+    });
+  });
 }
 
 main();
