@@ -481,7 +481,7 @@ async function main() {
       }
 
       // Check if username exists
-      const existingUser = await db.get('SELECT id FROM users WHERE username = ?', [username]);
+      const existingUser = await executeQuery('get', 'SELECT id FROM users WHERE username = ?', [username], null, req.ip);
       if (existingUser) {
         return res.status(400).json({ error: 'Benutzername bereits vergeben' });
       }
