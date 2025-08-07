@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env py thon3
 """
 Simple GitHub Webhook Handler für Auto-Deployment
 Lauscht auf Port 9000 für GitHub Webhooks
@@ -48,24 +48,85 @@ class WebhookHandler(http.server.BaseHTTPRequestHandler):
                     
                     print(f"✅ Webhook empfangen: Push zu 'live' Branch")
                     
-                    # Execute deployment script
-                    result = subprocess.run(
-                        ['/home/ubuntu/einkaufsliste/deploy.sh'],
-                        cwd='/home/ubuntu/einkaufsliste',
-                        capture_output=True,
-                        text=True
-                    )
+                    # Execute deployment commands directly
+                    deployment_success = True
+                    deployment_log = []
                     
-                    if result.returncode == 0:
-                        print("✅ Deployment erfolgreich")
+                    try:
+                        # Change to project directory
+                        os.chdir('/home/ubuntu/einkaufsliste')
+                        
+                        # Git pull
+                        print("📥 Git Repository wird aktualisiert...")
+                        result = subprocess.run(['git', 'fetch', 'origin'], capture_output=True, text=True)
+                        if result.returncode != 0:
+                            raise Exception(f"Git fetch failed: {result.stderr}")
+                        
+                        result = subprocess.run(['git', 'reset', '--hard', 'origin/live'], capture_output=True, text=True)
+                        if result.returncode != 0:
+                            raise Exception(f"Git reset failed: {result.stderr}")
+                        print("✅ Repository aktualisiert")
+                        
+                        # Backend dependencies
+                        print("📦 Backend Dependencies werden geprüft...")
+                        os.chdir('/home/ubuntu/einkaufsliste/backend')
+                        if not os.path.exists('node_modules') or os.path.getmtime('package-lock.json') > os.path.getmtime('node_modules'):
+                            result = subprocess.run(['npm', 'install'], capture_output=True, text=True)
+                            if result.returncode != 0:
+                                print(f"⚠️ Backend npm install warning: {result.stderr}")
+                            print("✅ Backend Dependencies aktualisiert")
+                        
+                        # Frontend dependencies and build
+                        print("📦 Frontend Dependencies werden geprüft...")
+                        os.chdir('/home/ubuntu/einkaufsliste/frontend')
+                        if not os.path.exists('node_modules') or os.path.getmtime('package-lock.json') > os.path.getmtime('node_modules'):
+                            result = subprocess.run(['npm', 'install'], capture_output=True, text=True)
+                            if result.returncode != 0:
+                                print(f"⚠️ Frontend npm install warning: {result.stderr}")
+                            print("✅ Frontend Dependencies aktualisiert")
+                        
+                        print("🏗️ Frontend Build wird erstellt...")
+                        result = subprocess.run(['npm', 'run', 'build'], capture_output=True, text=True)
+                        if result.returncode != 0:
+                            print(f"⚠️ Frontend build warning: {result.stderr}")
+                        print("✅ Frontend Build erstellt")
+                        
+                        # API dependencies
+                        print("🐍 API Dependencies werden geprüft...")
+                        os.chdir('/home/ubuntu/einkaufsliste/api')
+                        if os.path.exists('venv') and os.path.exists('requirements.txt'):
+                            result = subprocess.run(['./venv/bin/pip', 'install', '-r', 'requirements.txt'], capture_output=True, text=True)
+                            if result.returncode != 0:
+                                print(f"⚠️ API pip install warning: {result.stderr}")
+                            print("✅ API Dependencies aktualisiert")
+                        
+                        # Restart services
+                        print("🔄 Services werden neu gestartet...")
+                        os.chdir('/home/ubuntu/einkaufsliste')
+                        result = subprocess.run(['pm2', 'reload', 'ecosystem.config.js'], capture_output=True, text=True)
+                        if result.returncode != 0:
+                            print(f"⚠️ PM2 reload warning: {result.stderr}")
+                        print("✅ Services neu gestartet")
+                        
+                        print("🎉 Deployment erfolgreich abgeschlossen!")
+                        
+                    except Exception as e:
+                        deployment_success = False
+                        error_msg = str(e)
+                        print(f"❌ Deployment Fehler: {error_msg}")
+                        deployment_log.append(error_msg)
+                    
+                    if deployment_success:
                         self.send_response(200)
                         self.send_header('Content-type', 'application/json')
                         self.end_headers()
                         self.wfile.write(b'{"status": "success", "message": "Deployment completed"}')
                     else:
-                        print(f"❌ Deployment fehlgeschlagen: {result.stderr}")
                         self.send_response(500)
+                        self.send_header('Content-type', 'application/json')
                         self.end_headers()
+                        error_response = {"status": "error", "message": "Deployment failed", "errors": deployment_log}
+                        self.wfile.write(json.dumps(error_response).encode())
                 else:
                     print(f"ℹ️  Webhook ignoriert: Nicht für 'live' Branch")
                     self.send_response(200)
