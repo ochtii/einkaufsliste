@@ -1,3 +1,5 @@
+// Update 2025-08-09: Commit-Trigger-Kommentar für Deployment
+// DEPLOY: Force deployment trigger
 import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as api from '../utils/api';
@@ -8,6 +10,8 @@ const ProductManagement = ({ onClose }) => {
   const [customArticles, setCustomArticles] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
+  const [newArticle, setNewArticle] = useState({ name: '', icon: '', category: '' });
+  const [showAddArticle, setShowAddArticle] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('view');
   const [editMode, setEditMode] = useState(false);
@@ -18,7 +22,7 @@ const ProductManagement = ({ onClose }) => {
   const [selectedArticles, setSelectedArticles] = useState(new Set());
   const [selectedFavorites, setSelectedFavorites] = useState(new Set());
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [emojiTarget, setEmojiTarget] = useState(null); // 'newCategory', 'editingCategory', 'editingArticle'
+  const [emojiTarget, setEmojiTarget] = useState(null); // 'newCategory', 'editingCategory', 'editingArticle', 'newArticle'
 
   const fetchData = async () => {
     await Promise.all([
@@ -105,6 +109,41 @@ const ProductManagement = ({ onClose }) => {
     } catch (error) {
       console.error('Error adding category:', error);
       alert('Fehler beim Hinzufügen der Kategorie');
+    }
+  };
+
+  const handleAddArticle = async (e) => {
+    e.preventDefault();
+    
+    if (!newArticle.name.trim() || !newArticle.category) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/standard-articles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newArticle.name.trim(),
+          category: newArticle.category,
+          icon: newArticle.icon || '📦'
+        })
+      });
+
+      if (response.ok) {
+        setNewArticle({ name: '', icon: '', category: '' });
+        setShowAddArticle(false);
+        fetchCustomArticles();
+        fetchStandardArticles();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Fehler beim Hinzufügen');
+      }
+    } catch (error) {
+      console.error('Error adding article:', error);
+      alert('Fehler beim Hinzufügen des Artikels');
     }
   };
 
@@ -257,6 +296,7 @@ const ProductManagement = ({ onClose }) => {
 
       if (response.ok) {
         fetchCustomArticles();
+        fetchStandardArticles(); // Also refresh standard articles
       } else {
         const error = await response.json();
         alert(error.error || 'Fehler beim Löschen');
@@ -264,6 +304,33 @@ const ProductManagement = ({ onClose }) => {
     } catch (error) {
       console.error('Error deleting standard article:', error);
       alert('Fehler beim Löschen des Artikels');
+    }
+  };
+
+  const handleMoveArticleToCategory = async (articleId, newCategory) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/standard-articles/${articleId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          category: newCategory
+        })
+      });
+
+      if (response.ok) {
+        fetchStandardArticles();
+        fetchCustomArticles();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Fehler beim Verschieben');
+      }
+    } catch (error) {
+      console.error('Error moving article:', error);
+      alert('Fehler beim Verschieben des Artikels');
     }
   };
 
@@ -278,10 +345,14 @@ const ProductManagement = ({ onClose }) => {
   };
 
   const handleSelectAllArticles = () => {
-    if (selectedArticles.size === customArticles.length) {
+    const editableArticles = activeTab === 'view' 
+      ? standardArticles.filter(a => !a.is_global)
+      : customArticles;
+      
+    if (selectedArticles.size === editableArticles.length) {
       setSelectedArticles(new Set());
     } else {
-      setSelectedArticles(new Set(customArticles.map(a => a.id)));
+      setSelectedArticles(new Set(editableArticles.map(a => a.id)));
     }
   };
 
@@ -380,6 +451,9 @@ const ProductManagement = ({ onClose }) => {
         break;
       case 'editingArticle':
         setEditingArticle({...editingArticle, icon: emoji});
+        break;
+      case 'newArticle':
+        setNewArticle({...newArticle, icon: emoji});
         break;
       default:
         // No action needed for unknown targets
@@ -491,22 +565,178 @@ const ProductManagement = ({ onClose }) => {
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {activeTab === 'view' && (
             <div className="space-y-6">
+              {/* Edit Mode Controls for Standard Articles */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Standardartikel</h3>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setEditMode(!editMode);
+                        setSelectedArticles(new Set());
+                      }}
+                      className={`px-3 py-1 rounded text-sm ${
+                        editMode 
+                          ? 'bg-red-600 hover:bg-red-700 text-white' 
+                          : 'bg-orange-600 hover:bg-orange-700 text-white'
+                      }`}
+                    >
+                      ✏️ {editMode ? 'Bearbeitung beenden' : 'Bearbeiten'}
+                    </button>
+                  </div>
+                </div>
+                
+                {editMode && (
+                  <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                    <label className="flex items-center gap-2 text-white">
+                      <input
+                        type="checkbox"
+                        checked={selectedArticles.size === standardArticles.filter(a => !a.is_global).length && standardArticles.filter(a => !a.is_global).length > 0}
+                        onChange={handleSelectAllArticles}
+                        className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+                      />
+                      Alle eigenen Standardartikel auswählen ({standardArticles.filter(a => !a.is_global).length} Artikel)
+                    </label>
+                    {selectedArticles.size > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-300">
+                          {selectedArticles.size} ausgewählt
+                        </span>
+                        <button
+                          onClick={handleBulkDeleteArticles}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                        >
+                          Löschen
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               
               {Object.keys(groupedArticles).sort().map(category => (
                 <div key={category} className="space-y-3">
-                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <h4 className="text-md font-semibold text-white flex items-center gap-2">
                     {categories.find(cat => cat.name === category)?.icon || '📦'} {category}
-                  </h3>
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                     {groupedArticles[category].map((article) => (
                       <div
                         key={article.id}
-                        className="rounded-lg p-3 flex items-center gap-2 bg-gray-700 border border-transparent"
+                        className={`rounded-lg p-3 flex items-center justify-between transition-colors ${
+                          selectedArticles.has(article.id) && !article.is_global
+                            ? 'bg-blue-700 border border-blue-500' 
+                            : 'bg-gray-700 border border-transparent'
+                        }`}
+                        draggable={editMode && !article.is_global}
+                        onDragStart={(e) => {
+                          if (editMode && !article.is_global) {
+                            e.dataTransfer.setData('text/plain', JSON.stringify({
+                              id: article.id,
+                              name: article.name,
+                              icon: article.icon,
+                              category: article.category
+                            }));
+                          }
+                        }}
+                        onDragOver={(e) => editMode && e.preventDefault()}
+                        onDrop={(e) => {
+                          if (editMode) {
+                            e.preventDefault();
+                            const draggedArticle = JSON.parse(e.dataTransfer.getData('text/plain'));
+                            if (draggedArticle.category !== category) {
+                              handleMoveArticleToCategory(draggedArticle.id, category);
+                            }
+                          }
+                        }}
                       >
-                        <span className="text-lg">{article.icon}</span>
-                        <span className="text-white">{article.name}</span>
-                        {!article.is_global && (
-                          <span className="text-blue-400 text-sm ml-auto" title="Eigener Artikel">👤</span>
+                        {editingArticle?.id === article.id ? (
+                          <form onSubmit={handleUpdateArticle} className="flex-1 flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="text"
+                                value={editingArticle.icon}
+                                onChange={(e) => setEditingArticle({...editingArticle, icon: e.target.value})}
+                                className="w-10 px-1 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="🍎"
+                                maxLength={2}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEmojiTarget('editingArticle');
+                                  setShowEmojiPicker(true);
+                                }}
+                                className="p-1 text-gray-400 hover:text-white text-sm"
+                                title="Symbol auswählen"
+                              >
+                                😀
+                              </button>
+                            </div>
+                            <input
+                              type="text"
+                              value={editingArticle.name}
+                              onChange={(e) => setEditingArticle({...editingArticle, name: e.target.value})}
+                              className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              required
+                            />
+                            <select
+                              value={editingArticle.category}
+                              onChange={(e) => setEditingArticle({...editingArticle, category: e.target.value})}
+                              className="px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              required
+                            >
+                              {categories.map(cat => (
+                                <option key={cat.uuid || cat.name} value={cat.name}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                            <button type="submit" className="text-green-400 hover:text-green-300 text-lg">✓</button>
+                            <button 
+                              type="button" 
+                              onClick={() => setEditingArticle(null)}
+                              className="text-red-400 hover:text-red-300 text-lg"
+                            >
+                              ✕
+                            </button>
+                          </form>
+                        ) : (
+                          <>
+                            {editMode && !article.is_global && (
+                              <input
+                                type="checkbox"
+                                checked={selectedArticles.has(article.id)}
+                                onChange={() => handleSelectArticle(article.id)}
+                                className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500 mr-2"
+                              />
+                            )}
+                            <div className="flex items-center gap-2 flex-1">
+                              <span className="text-lg">{article.icon}</span>
+                              <span className="text-white">{article.name}</span>
+                              {!article.is_global && (
+                                <span className="text-blue-400 text-sm" title="Eigener Artikel">👤</span>
+                              )}
+                            </div>
+                            {editMode && !article.is_global && (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => setEditingArticle(article)}
+                                  className="text-orange-400 hover:text-orange-300 text-sm p-1"
+                                  title="Bearbeiten"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteArticle(article.id)}
+                                  className="text-red-400 hover:text-red-300 text-sm p-1"
+                                  title="Löschen"
+                                >
+                                  �️
+                                </button>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     ))}
@@ -551,6 +781,15 @@ const ProductManagement = ({ onClose }) => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
+                        setShowAddArticle(!showAddArticle);
+                        setNewArticle({ name: '', icon: '', category: categories[0]?.name || '' });
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                    >
+                      ➕ Artikel hinzufügen
+                    </button>
+                    <button
+                      onClick={() => {
                         setEditMode(!editMode);
                         setSelectedArticles(new Set());
                       }}
@@ -564,6 +803,66 @@ const ProductManagement = ({ onClose }) => {
                     </button>
                   </div>
                 </div>
+                
+                {/* Add Article Form */}
+                {showAddArticle && (
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <form onSubmit={handleAddArticle} className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={newArticle.icon}
+                          onChange={(e) => setNewArticle({...newArticle, icon: e.target.value})}
+                          className="w-10 px-1 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="📦"
+                          maxLength={2}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEmojiTarget('newArticle');
+                            setShowEmojiPicker(true);
+                          }}
+                          className="p-1 text-gray-400 hover:text-white text-sm"
+                          title="Symbol auswählen"
+                        >
+                          😀
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={newArticle.name}
+                        onChange={(e) => setNewArticle({...newArticle, name: e.target.value})}
+                        className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Artikelname..."
+                        required
+                      />
+                      <select
+                        value={newArticle.category}
+                        onChange={(e) => setNewArticle({...newArticle, category: e.target.value})}
+                        className="px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="">Kategorie wählen</option>
+                        {categories.map(cat => (
+                          <option key={cat.uuid || cat.name} value={cat.name}>
+                            {cat.icon} {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">
+                        ✓ Hinzufügen
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowAddArticle(false)}
+                        className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm"
+                      >
+                        ✕
+                      </button>
+                    </form>
+                  </div>
+                )}
                 
                 {customArticles.length === 0 ? (
                   <div className="text-center py-8">
@@ -653,24 +952,22 @@ const ProductManagement = ({ onClose }) => {
                                   <span className="text-lg">{article.icon}</span>
                                   <span className="text-white">{article.name}</span>
                                 </div>
-                                {editMode && (
-                                  <div className="flex items-center gap-1">
-                                    <button
-                                      onClick={() => setEditingArticle(article)}
-                                      className="text-orange-400 hover:text-orange-300 text-sm p-1"
-                                      title="Bearbeiten"
-                                    >
-                                      ✏️
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteArticle(article.id)}
-                                      className="text-red-400 hover:text-red-300 text-sm p-1"
-                                      title="Löschen"
-                                    >
-                                      🗑️
-                                    </button>
-                                  </div>
-                                )}
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => setEditingArticle(article)}
+                                    className="text-orange-400 hover:text-orange-300 text-sm p-1"
+                                    title="Bearbeiten"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteArticle(article.id)}
+                                    className="text-red-400 hover:text-red-300 text-sm p-1"
+                                    title="Löschen"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
                               </>
                             )}
                           </div>
