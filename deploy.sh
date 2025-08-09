@@ -124,6 +124,17 @@ print_info "══════════════════════�
 print_info "Final service status:"
 pm2 status
 
+# Wait a bit longer and check status again
+print_info "Waiting 7 seconds for full initialization..."
+for i in {7..1}; do
+    echo -n "$i... "
+    sleep 1
+done
+echo ""
+
+print_info "Final status check after initialization:"
+pm2 status
+
 print_success "Auto-deployment completed successfully! 🚀"
 print_info "═══════════════════════════════════════"
 print_info "📊 Monitor with: pm2 monit"
