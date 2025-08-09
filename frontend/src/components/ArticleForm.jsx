@@ -271,4 +271,4 @@ export default function ArticleForm({ onAdded, currentList, token }) {
     </form>
   );
 }
-/* End of component - No code should be added below this line */
+// FINAL LINE - DO NOT ADD ANY CODE AFTER THIS COMMENT
