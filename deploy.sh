@@ -40,9 +40,10 @@ cd api
 pip3 install -r requirements.txt
 cd ..
 
-# Stop services
+# Stop services (except webhook to avoid killing the deployment process)
 print_info "Stopping existing services..."
-pm2 stop ecosystem.config.js 2>/dev/null || print_warning "No existing services to stop"
+pm2 stop einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api 2>/dev/null || print_warning "Some services were not running"
+# Note: We don't stop the webhook during deployment to avoid killing the deploy process
 
 # Database backup
 if [ -f "backend/db.sqlite" ]; then
@@ -51,9 +52,14 @@ if [ -f "backend/db.sqlite" ]; then
     print_success "Database backed up"
 fi
 
-# Start services
+# Start services (except webhook which is already running)
 print_info "Starting services..."
-pm2 start ecosystem.config.js
+pm2 restart einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api 2>/dev/null || {
+    print_info "Some services not running, starting them fresh..."
+    pm2 start ecosystem.config.js --only einkaufsliste-backend
+    pm2 start ecosystem.config.js --only einkaufsliste-frontend  
+    pm2 start ecosystem.config.js --only einkaufsliste-api
+}
 
 # Wait for services to start properly
 print_info "Waiting for services to initialize..."
