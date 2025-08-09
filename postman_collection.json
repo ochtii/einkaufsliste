@@ -1,0 +1,437 @@
+{
+  "info": {
+    "name": "Einkaufsliste API Collection",
+    "description": "Vollständige API-Collection für die Einkaufsliste App",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "backend_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "admin_url", 
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "easteregg_url",
+      "value": "http://localhost:8888",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "list_uuid",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/login",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('auth_token', response.token);",
+                  "    pm.collectionVariables.set('user_uuid', response.user.uuid);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"password\": \"newpass\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/register",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Listen-Management",
+      "item": [
+        {
+          "name": "Get All Lists",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/lists",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "lists"]
+            }
+          }
+        },
+        {
+          "name": "Create List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wocheneinkauf\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/lists",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "lists"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('list_uuid', response.uuid);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update List",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Geänderte Liste\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/lists/{{list_uuid}}",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "lists", "{{list_uuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete List",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/lists/{{list_uuid}}",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "lists", "{{list_uuid}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛍️ Artikel-Management",
+      "item": [
+        {
+          "name": "Get List Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/lists/{{list_uuid}}/items",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "lists", "{{list_uuid}}", "items"]
+            }
+          }
+        },
+        {
+          "name": "Add Item to List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Milch\",\n  \"category\": \"🥛 Milchprodukte\",\n  \"icon\": \"🥛\",\n  \"comment\": \"1 Liter\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/lists/{{list_uuid}}/items",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "lists", "{{list_uuid}}", "items"]
+            }
+          }
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Milch\",\n  \"category\": \"🥛 Milchprodukte\",\n  \"icon\": \"🥛\",\n  \"comment\": \"2 Liter\",\n  \"checked\": true\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/lists/{{list_uuid}}/items/1",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "lists", "{{list_uuid}}", "items", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Kategorien",
+      "item": [
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/categories",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"🍎 Obst\",\n  \"icon\": \"🍎\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/categories",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Standardartikel",
+      "item": [
+        {
+          "name": "Get Standard Articles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{backend_url}}/api/standard-articles",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "standard-articles"]
+            }
+          }
+        },
+        {
+          "name": "Create Standard Article",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Butter\",\n  \"category\": \"🥛 Milchprodukte\",\n  \"icon\": \"🧈\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/standard-articles",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "standard-articles"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎉 Easter Eggs",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{easteregg_url}}/egg/api/lol/health",
+              "host": ["{{easteregg_url}}"],
+              "path": ["egg", "api", "lol", "health"]
+            }
+          }
+        },
+        {
+          "name": "Trigger Stars & Sweets",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "einkaufsliste-easter-2025"
+              },
+              {
+                "key": "X-User-UUID",
+                "value": "{{user_uuid}}"
+              },
+              {
+                "key": "X-User-Name",
+                "value": "TestUser"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"icon\": \"⭐\",\n  \"category\": \"🍭 Süßwaren\"\n}"
+            },
+            "url": {
+              "raw": "{{easteregg_url}}/egg/api/lol/trigger/stars-and-sweets",
+              "host": ["{{easteregg_url}}"],
+              "path": ["egg", "api", "lol", "trigger", "stars-and-sweets"]
+            }
+          }
+        },
+        {
+          "name": "Get User Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "einkaufsliste-easter-2025"
+              }
+            ],
+            "url": {
+              "raw": "{{easteregg_url}}/egg/api/lol/stats/{{user_uuid}}",
+              "host": ["{{easteregg_url}}"],
+              "path": ["egg", "api", "lol", "stats", "{{user_uuid}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

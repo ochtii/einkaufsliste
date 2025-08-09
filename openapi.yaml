@@ -1,0 +1,607 @@
+openapi: 3.0.3
+info:
+  title: Einkaufsliste API
+  description: |
+    Vollständige API-Dokumentation für die Einkaufsliste App
+    
+    ## Authentifizierung
+    Die meisten Endpoints erfordern einen JWT Bearer Token im Authorization Header.
+    
+    ## Easter Eggs 🥚
+    Spezielle versteckte Features mit eigener API auf Port 8888.
+    
+  version: 1.0.0
+  contact:
+    name: Einkaufsliste Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:4000
+    description: Backend API (Development)
+  - url: http://localhost:5000  
+    description: Admin API (Development)
+  - url: http://localhost:8888
+    description: Easter Egg API (Development)
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    easterEggApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    User:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        username:
+          type: string
+    
+    List:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        items_count:
+          type: integer
+    
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        icon:
+          type: string
+        comment:
+          type: string
+        checked:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    
+    Category:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        icon:
+          type: string
+    
+    StandardArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        icon:
+          type: string
+        type:
+          type: string
+          enum: [standard, favorite]
+    
+    EasterEggResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+        celebration:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [FIRST_EVER, NEW_DISCOVERY, ALREADY_FOUND]
+            title:
+              type: string
+            message:
+              type: string
+            effect:
+              type: string
+              enum: [MEGA_FIREWORKS, CONFETTI, SPARKLE]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+
+paths:
+  # Authentication
+  /api/login:
+    post:
+      tags: [Authentication]
+      summary: Benutzer anmelden
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Erfolgreich angemeldet
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Ungültige Anmeldedaten
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/register:
+    post:
+      tags: [Authentication]
+      summary: Neuen Benutzer registrieren
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Benutzer erfolgreich registriert
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Ungültige Eingaben
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Listen
+  /api/lists:
+    get:
+      tags: [Listen]
+      summary: Alle Listen des Benutzers
+      responses:
+        '200':
+          description: Liste der Einkaufslisten
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/List'
+    
+    post:
+      tags: [Listen]
+      summary: Neue Liste erstellen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Liste erfolgreich erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+
+  /api/lists/{listUuid}:
+    put:
+      tags: [Listen]
+      summary: Liste bearbeiten
+      parameters:
+        - name: listUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Liste erfolgreich aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+    
+    delete:
+      tags: [Listen]
+      summary: Liste löschen
+      parameters:
+        - name: listUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Liste erfolgreich gelöscht
+
+  # Artikel
+  /api/lists/{listUuid}/items:
+    get:
+      tags: [Artikel]
+      summary: Alle Artikel einer Liste
+      parameters:
+        - name: listUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste der Artikel
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+    
+    post:
+      tags: [Artikel]
+      summary: Artikel zu Liste hinzufügen
+      parameters:
+        - name: listUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                icon:
+                  type: string
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Artikel erfolgreich hinzugefügt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+
+  /api/lists/{listUuid}/items/{itemId}:
+    put:
+      tags: [Artikel]
+      summary: Artikel bearbeiten
+      parameters:
+        - name: listUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                icon:
+                  type: string
+                comment:
+                  type: string
+                checked:
+                  type: boolean
+      responses:
+        '200':
+          description: Artikel erfolgreich aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+    
+    delete:
+      tags: [Artikel]
+      summary: Artikel löschen
+      parameters:
+        - name: listUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Artikel erfolgreich gelöscht
+
+  # Kategorien
+  /api/categories:
+    get:
+      tags: [Kategorien]
+      summary: Alle verfügbaren Kategorien
+      responses:
+        '200':
+          description: Liste der Kategorien
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+    
+    post:
+      tags: [Kategorien]
+      summary: Neue Kategorie erstellen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, icon]
+              properties:
+                name:
+                  type: string
+                icon:
+                  type: string
+      responses:
+        '201':
+          description: Kategorie erfolgreich erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+
+  # Standardartikel
+  /api/standard-articles:
+    get:
+      tags: [Standardartikel]
+      summary: Alle Standardartikel
+      responses:
+        '200':
+          description: Liste der Standardartikel
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StandardArticle'
+    
+    post:
+      tags: [Standardartikel]
+      summary: Standardartikel erstellen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, category, icon]
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                icon:
+                  type: string
+      responses:
+        '201':
+          description: Standardartikel erfolgreich erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardArticle'
+
+  # Easter Eggs
+  /egg/api/lol/health:
+    get:
+      tags: [Easter Eggs]
+      summary: API Gesundheitscheck
+      security: []
+      servers:
+        - url: http://localhost:8888
+      responses:
+        '200':
+          description: API ist gesund
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+                  version:
+                    type: string
+
+  /egg/api/lol/find/{eggName}:
+    post:
+      tags: [Easter Eggs]
+      summary: Easter Egg als gefunden melden
+      security:
+        - easterEggApiKey: []
+      servers:
+        - url: http://localhost:8888
+      parameters:
+        - name: eggName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-User-UUID
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-User-Name
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Easter Egg gefunden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EasterEggResponse'
+
+  /egg/api/lol/trigger/stars-and-sweets:
+    post:
+      tags: [Easter Eggs]
+      summary: Sterne & Süßwaren Easter Egg aktivieren
+      security:
+        - easterEggApiKey: []
+      servers:
+        - url: http://localhost:8888
+      parameters:
+        - name: X-User-UUID
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-User-Name
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [icon, category]
+              properties:
+                icon:
+                  type: string
+                  example: "⭐"
+                category:
+                  type: string
+                  example: "🍭 Süßwaren"
+      responses:
+        '200':
+          description: Easter Egg aktiviert
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EasterEggResponse'
+                  - type: object
+                    properties:
+                      animation:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          duration:
+                            type: integer
+                          particles:
+                            type: array
+                            items:
+                              type: string
+
+tags:
+  - name: Authentication
+    description: Benutzer-Authentifizierung
+  - name: Listen
+    description: Einkaufslisten-Management
+  - name: Artikel
+    description: Artikel-Management
+  - name: Kategorien
+    description: Kategorie-Management
+  - name: Standardartikel
+    description: Standardartikel-Management
+  - name: Easter Eggs
+    description: Versteckte Features und Animationen
