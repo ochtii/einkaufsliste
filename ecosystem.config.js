@@ -48,7 +48,7 @@ module.exports = {
       name: "einkaufsliste-frontend",
       script: "npx",
       cwd: "./frontend",
-      args: "serve -s build -l 3000",
+      args: "serve -s build -l 3000 --verbose",
       instances: 1,
       autorestart: true,
       watch: false,
@@ -56,6 +56,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3000,
+        DEBUG: "*",
       },
       error_file: "./logs/frontend-error.log",
       out_file: "./logs/frontend-out.log",
