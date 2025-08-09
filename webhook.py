@@ -20,11 +20,12 @@ REPO_PATH = os.environ.get('REPO_PATH', '/home/einkaufsliste')
 DEPLOY_SCRIPT = os.path.join(REPO_PATH, 'deploy.sh')
 
 # Logging setup
+import sys
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler()  # PM2 handles file logging
+        logging.StreamHandler(sys.stdout)  # Explizit stdout verwenden
     ]
 )
 logger = logging.getLogger(__name__)

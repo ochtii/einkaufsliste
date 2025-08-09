@@ -18,6 +18,8 @@ module.exports = {
       out_file: "./logs/backend-out.log",
       log_file: "./logs/backend-combined.log",
       time: true,
+      merge_logs: true,
+      combine_logs: true,
     },
     {
       name: "einkaufsliste-api",
@@ -31,11 +33,14 @@ module.exports = {
       env: {
         PYTHONPATH: ".",
         PORT: 8000,
+        PYTHONUNBUFFERED: "1",
       },
       error_file: "./logs/api-error.log",
       out_file: "./logs/api-out.log",
       log_file: "./logs/api-combined.log",
       time: true,
+      merge_logs: true,
+      combine_logs: true,
     },
     {
       name: "einkaufsliste-frontend",
@@ -64,11 +69,14 @@ module.exports = {
         GITHUB_WEBHOOK_SECRET: "einkaufsliste-webhook-secret",
         WEBHOOK_PORT: "9000",
         REPO_PATH: "/home/einkaufsliste",
+        PYTHONUNBUFFERED: "1",
       },
       error_file: "./logs/webhook-error.log",
       out_file: "./logs/webhook-out.log",
       log_file: "./logs/webhook-combined.log",
       time: true,
+      merge_logs: true,
+      combine_logs: true,
     },
   ],
 };
