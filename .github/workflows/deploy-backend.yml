@@ -64,9 +64,9 @@ jobs:
         
         # Create demo data seed script
         cat > demo-seed.js << 'EOF'
-        const sqlite3 = require('sqlite3').verbose();
-        const bcrypt = require('bcrypt');
-        const { v4: uuidv4 } = require('uuid');
+        import sqlite3 from 'sqlite3';
+        import bcrypt from 'bcrypt';
+        import { v4 as uuidv4 } from 'uuid';
         
         const db = new sqlite3.Database('./demo.sqlite');
         
