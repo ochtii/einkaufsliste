@@ -116,6 +116,32 @@ export default function ArticleForm({ onAdded, currentList, token }) {
     setShowSuggestions(false);
   }
 
+  async function handleQuickAdd(article) {
+    if (!currentList) return;
+    
+    setLoading(true);
+    try {
+      const data = { 
+        name: article.name.trim(), 
+        category: article.category, 
+        icon: article.icon || '📦', 
+        comment: article.comment || '' 
+      };
+      
+      await api.createArticle(currentList.uuid, data, token);
+      
+      onAdded();
+      loadArticleHistory(); // Refresh history
+      setName(''); 
+      setComment('');
+      setShowSuggestions(false);
+    } catch (err) {
+      console.error('Error creating article:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function handleEmojiSelect(emoji) {
     // For ArticleForm, we don't use custom icons, so this is just for future extension
     setShowEmojiPicker(false);
@@ -183,29 +209,96 @@ export default function ArticleForm({ onAdded, currentList, token }) {
                 const sourceColor = isFromFavorites ? 'text-yellow-400 bg-yellow-900/30' : isFromHistory ? 'text-green-400 bg-green-900/30' : 'text-blue-400 bg-blue-900/30';
                 
                 return (
-                  <div
-                    key={`${suggestion.name}-${suggestion.category}-${index}`}
-                    className="px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors"
-                    onClick={() => selectSuggestion(suggestion)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg">{suggestion.icon || '📦'}</span>
-                        <span className="font-medium text-white">{suggestion.name}</span>
-                        <span className="text-xs text-blue-400 bg-blue-900/30 px-2 py-1 rounded">
-                          {suggestion.category}
-                        </span>
+                  <div key={`${suggestion.name}-${suggestion.category}-${index}`}>
+                    <div
+                      className="px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 transition-colors"
+                      onClick={() => selectSuggestion(suggestion)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">{suggestion.icon || '📦'}</span>
+                          <span className="font-medium text-white">{suggestion.name}</span>
+                          <span className="text-xs text-blue-400 bg-blue-900/30 px-2 py-1 rounded">
+                            {suggestion.category}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-1 rounded ${sourceColor}`}>
+                            {sourceLabel}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuickAdd(suggestion);
+                            }}
+                            className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
+                            title="Direkt hinzufügen"
+                          >
+                            ➕
+                          </button>
+                        </div>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded ${sourceColor}`}>
-                        {sourceLabel}
-                      </span>
+                      {suggestion.comment && (
+                        <div className="text-xs text-gray-400 mt-1 ml-6">{suggestion.comment}</div>
+                      )}
                     </div>
-                    {suggestion.comment && (
-                      <div className="text-xs text-gray-400 mt-1 ml-6">{suggestion.comment}</div>
-                    )}
                   </div>
                 );
               })}
+              
+              {/* Quick add new article option */}
+              {name.trim() && !filteredSuggestions.some(s => s.name.toLowerCase() === name.toLowerCase()) && (
+                <div className="border-t border-gray-700">
+                  <div
+                    className="px-3 py-2 hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => {
+                      if (category) {
+                        handleQuickAdd({
+                          name: name.trim(),
+                          category: category,
+                          icon: '📦',
+                          comment: comment
+                        });
+                      }
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">📦</span>
+                        <span className="font-medium text-green-400">"{name}" als neuen Artikel hinzufügen</span>
+                        {category && (
+                          <span className="text-xs text-blue-400 bg-blue-900/30 px-2 py-1 rounded">
+                            {category}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (category) {
+                            handleQuickAdd({
+                              name: name.trim(),
+                              category: category,
+                              icon: '📦',
+                              comment: comment
+                            });
+                          }
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
+                        disabled={!category}
+                        title={category ? "Direkt hinzufügen" : "Bitte wählen Sie zuerst eine Kategorie"}
+                      >
+                        ➕
+                      </button>
+                    </div>
+                    {!category && (
+                      <div className="text-xs text-orange-400 mt-1">
+                        Bitte wählen Sie zuerst eine Kategorie aus
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
