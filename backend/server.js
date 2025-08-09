@@ -5,6 +5,14 @@ import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config({ path: '../.env' });
+// Fallback: try loading from current directory if parent directory doesn't work
+if (!process.env.JWT_SECRET) {
+  dotenv.config();
+}
 
 // Secure JWT Secret validation
 const JWT_SECRET = process.env.JWT_SECRET;

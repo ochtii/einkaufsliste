@@ -18,6 +18,10 @@ import os
 import threading
 import signal
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv('../.env')
 
 # Logging setup - Explizit stdout für PM2
 logging.basicConfig(

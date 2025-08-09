@@ -1,0 +1,2 @@
+# Python API Dependencies
+python-dotenv==1.0.0
