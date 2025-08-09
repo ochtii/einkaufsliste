@@ -57,7 +57,6 @@ pm2 stop einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api eastereg
 
 # Delete and recreate services to force config reload
 print_info "Forcing complete service restart with new configuration..."
-pm2 delete einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api eastereggs-api 2>/dev/null || print_warning "Some services were already deleted"
 
 # Database backup
 if [ -f "backend/db.sqlite" ]; then
