@@ -412,7 +412,7 @@ function AppContent() {
   const { user, loading } = useAuth();
 
   // Check if URL is admin route
-  if (window.location.pathname === '/dJkL9mN2pQ7rS4tUvWxYz') {
+  if (window.location.pathname === '/admin') {
     return <Admin />;
   }
 

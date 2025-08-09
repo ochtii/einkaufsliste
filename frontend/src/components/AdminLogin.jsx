@@ -17,7 +17,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch('/api/dJkL9mN2pQ7rS4tUvWxYz/stats', {
+      const response = await fetch('/api/admin/stats', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

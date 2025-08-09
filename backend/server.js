@@ -6,7 +6,13 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+// Secure JWT Secret validation
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET === 'your-secret-key-change-in-production') {
+  console.error('❌ FEHLER: JWT_SECRET Umgebungsvariable nicht gesetzt oder unsicher!');
+  console.error('   Setze eine sichere JWT_SECRET Umgebungsvariable vor dem Start.');
+  process.exit(1);
+}
 
 // Server start time for uptime calculation
 const serverStartTime = Date.now();
@@ -1158,12 +1164,18 @@ async function main() {
     }
   });
 
-  // Demo Admin Routes (Password-based authentication)
+  // Demo Admin Routes (Environment-based authentication)
 
   // Admin middleware
   const adminAuth = (req, res, next) => {
     const { password } = req.body || req.query;
-    if (password !== 'HureAgnes21') {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    if (!adminPassword) {
+      return res.status(503).json({ error: 'Admin-Passwort nicht konfiguriert' });
+    }
+    
+    if (password !== adminPassword) {
       return res.status(401).json({ error: 'Ungültiges Admin-Passwort' });
     }
     next();
@@ -1171,13 +1183,14 @@ async function main() {
 
   // Validate admin password function
   const validateAdminPassword = (password) => {
-    return password === 'HureAgnes21';
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    return adminPassword && password === adminPassword;
   };
 
-  // Admin Routes
+  // Secure Admin Routes (Environment-based authentication)
   
   // Get all users (admin only)
-  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/users', adminAuth, async (req, res) => {
+  app.post('/api/admin/users', adminAuth, async (req, res) => {
     try {
       const users = await db.all(`
         SELECT 
@@ -1205,7 +1218,7 @@ async function main() {
   });
 
   // Get system statistics (admin only)
-  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/stats', adminAuth, async (req, res) => {
+  app.post('/api/admin/stats', adminAuth, async (req, res) => {
     try {
       const stats = await db.get(`
         SELECT 
@@ -1226,7 +1239,7 @@ async function main() {
   });
 
   // Delete user (admin only)
-  app.delete('/api/dJkL9mN2pQ7rS4tUvWxYz/users/:id', adminAuth, async (req, res) => {
+  app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -1244,7 +1257,7 @@ async function main() {
   });
 
   // Toggle user admin status (admin only)
-  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/users/:userId/toggle-admin', adminAuth, async (req, res) => {
+  app.post('/api/admin/users/:userId/toggle-admin', adminAuth, async (req, res) => {
     try {
       const { userId } = req.params;
       
@@ -1281,7 +1294,7 @@ async function main() {
   // Broadcast management
 
   // Create broadcast (admin only)
-  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts', adminAuth, async (req, res) => {
+  app.post('/api/admin/broadcasts', adminAuth, async (req, res) => {
     try {
       const { title, message, type, requires_confirmation, is_permanent, expires_at } = req.body;
       
@@ -1302,7 +1315,7 @@ async function main() {
   });
 
   // Get all broadcasts (admin only)
-  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/list', adminAuth, async (req, res) => {
+  app.post('/api/admin/broadcasts/list', adminAuth, async (req, res) => {
     try {
       const broadcasts = await db.all(`
         SELECT 
@@ -1323,7 +1336,7 @@ async function main() {
   });
 
   // Toggle broadcast status (admin only)
-  app.put('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/:id/toggle', adminAuth, async (req, res) => {
+  app.put('/api/admin/broadcasts/:id/toggle', adminAuth, async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -1341,7 +1354,7 @@ async function main() {
   });
 
   // Delete broadcast (admin only)
-  app.delete('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/:id', adminAuth, async (req, res) => {
+  app.delete('/api/admin/broadcasts/:id', adminAuth, async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -1400,7 +1413,7 @@ async function main() {
   });
 
   // Clean up database duplicates (Admin only)
-  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/cleanup', adminAuth, async (req, res) => {
+  app.post('/api/admin/cleanup', adminAuth, async (req, res) => {
     try {
       // Remove duplicate standard articles (keep only one of each name/category combination)
       await db.exec(`
@@ -1444,7 +1457,7 @@ async function main() {
   });
 
   // Get database logs (Admin only)
-  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/logs', async (req, res) => {
+  app.post('/api/admin/logs', async (req, res) => {
     try {
       const { password, limit = 100, offset = 0 } = req.body;
       
@@ -1477,7 +1490,7 @@ async function main() {
   });
 
   // Clear database logs (Admin only)
-  app.post('/api/dJkL9mN2pQ7rS4tUvWxYz/logs/clear', async (req, res) => {
+  app.post('/api/admin/logs/clear', async (req, res) => {
     try {
       const { password, older_than_days = 30 } = req.body;
       

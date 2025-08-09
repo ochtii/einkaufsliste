@@ -21,17 +21,17 @@ const AdminDashboard = () => {
       
       // Parallele API-Aufrufe für bessere Performance
       const [statsRes, usersRes, broadcastsRes] = await Promise.all([
-        fetch('/api/dJkL9mN2pQ7rS4tUvWxYz/stats', {
+        fetch('/api/admin/stats', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password })
         }),
-        fetch('/api/dJkL9mN2pQ7rS4tUvWxYz/users', {
+        fetch('/api/admin/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password })
         }),
-        fetch('/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/list', {
+        fetch('/api/admin/broadcasts/list', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password })
@@ -90,7 +90,7 @@ const AdminDashboard = () => {
     
     try {
       setLoading(true);
-      const response = await fetch('/api/dJkL9mN2pQ7rS4tUvWxYz/stats', {
+      const response = await fetch('/api/admin/stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -114,7 +114,7 @@ const AdminDashboard = () => {
     if (!window.confirm('Benutzer wirklich löschen?')) return;
     
     try {
-      const response = await fetch(`/api/dJkL9mN2pQ7rS4tUvWxYz/users/${userId}`, {
+      const response = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -135,7 +135,7 @@ const AdminDashboard = () => {
     if (!window.confirm(`${username} wirklich als Admin ${action}?`)) return;
     
     try {
-      const response = await fetch(`/api/dJkL9mN2pQ7rS4tUvWxYz/users/${userId}/toggle-admin`, {
+      const response = await fetch(`/api/admin/users/${userId}/toggle-admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -157,7 +157,7 @@ const AdminDashboard = () => {
 
   const toggleBroadcast = async (broadcastId) => {
     try {
-      const response = await fetch(`/api/dJkL9mN2pQ7rS4tUvWxYz/broadcasts/${broadcastId}/toggle`, {
+      const response = await fetch(`/api/admin/broadcasts/${broadcastId}/toggle`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -177,7 +177,7 @@ const AdminDashboard = () => {
     if (!window.confirm('Datenbank-Duplikate bereinigen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
     
     try {
-      const response = await fetch('/api/dJkL9mN2pQ7rS4tUvWxYz/cleanup', {
+      const response = await fetch('/api/admin/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
