@@ -22,7 +22,8 @@ print_info "Starting deployment process..."
 
 # Pull latest changes
 print_info "Pulling latest changes from repository..."
-git pull origin live
+print_info "Files being updated:"
+git pull origin live --stat
 
 # Install/Update dependencies
 print_info "Updating Backend dependencies..."
