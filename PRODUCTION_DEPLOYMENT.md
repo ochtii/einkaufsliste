@@ -45,7 +45,7 @@
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:4000
-- **Admin Panel**: http://localhost:8000/admin
+- **Admin Panel**: http://localhost:5000/admin
 
 ## Default Credentials
 
@@ -68,7 +68,7 @@ PORT=4000
 
 ```
 ADMIN_PASSWORD=your-admin-password-here
-PORT=8000
+PORT=5000
 ```
 
 ## Nginx Configuration
@@ -98,7 +98,7 @@ server {
 
     # Admin API
     location /admin/ {
-        proxy_pass http://localhost:8000;
+        proxy_pass http://localhost:5000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

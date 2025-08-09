@@ -71,7 +71,7 @@ module.exports = {
       max_memory_restart: '512M',
       env: {
         PYTHONPATH: '.',
-        PORT: 8000
+        PORT: 5000
       }
     },
     {
@@ -102,4 +102,4 @@ echo ""
 echo "🌐 Default URLs:"
 echo "   Frontend: http://localhost:3000"
 echo "   Backend: http://localhost:4000"
-echo "   Admin API: http://localhost:8000"
+echo "   Admin API: http://localhost:5000"

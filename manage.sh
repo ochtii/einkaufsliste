@@ -38,10 +38,10 @@ check_health() {
     fi
     
     # API health
-    if curl -f -s http://localhost:8000/ >/dev/null 2>&1; then
-        print_success "API (port 8000): Healthy"
+    if curl -f -s http://localhost:5000/ >/dev/null 2>&1; then
+        print_success "API (port 5000): Healthy"
     else
-        print_error "API (port 8000): Not responding"
+        print_error "API (port 5000): Not responding"
     fi
     
     # Frontend health
