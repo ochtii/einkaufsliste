@@ -47,7 +47,9 @@ export default function ArticleForm({ onAdded, currentList, token }) {
       setFilteredSuggestions(uniqueFiltered);
       setShowSuggestions(uniqueFiltered.length > 0);
     } else {
-      setShowSuggestions(false);
+      // When input is empty, show dropdown with favorites and search option
+      setFilteredSuggestions([]);
+      // Don't automatically show suggestions when empty, will be shown on focus
     }
   }, [name, articleHistory, standardArticles, favorites]);
 
@@ -137,59 +139,96 @@ export default function ArticleForm({ onAdded, currentList, token }) {
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Artikelname *
           </label>
-          <div className="flex gap-2">
-            <input 
-              value={name} 
-              onChange={e => setName(e.target.value)} 
-              placeholder="z.B. Äpfel, Brot... (Tippen für Vorschläge)" 
-              className="input-field flex-1" 
-              required 
-              onFocus={() => name.length > 0 && setShowSuggestions(filteredSuggestions.length > 0)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            />
-            <button
-              type="button"
-              onClick={() => setShowArticleBrowser(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
-              title="Durchsuchen Sie gespeicherte Artikel"
-            >
-              🔍 Durchsuchen
-            </button>
+          <div className="relative">
+            <div className="flex">
+              <input 
+                value={name} 
+                onChange={e => setName(e.target.value)} 
+                placeholder="z.B. Äpfel, Brot... (Tippen für Vorschläge)" 
+                className="input-field flex-1 pr-20" 
+                required 
+                onFocus={() => {
+                  if (name.length > 0) {
+                    setShowSuggestions(filteredSuggestions.length > 0);
+                  } else {
+                    setShowArticleBrowser(true);
+                  }
+                }}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <button
+                  type="button"
+                  onClick={() => setShowArticleBrowser(true)}
+                  className="p-2 text-blue-500 hover:text-blue-400 transition-colors"
+                  title="Artikelliste durchsuchen"
+                >
+                  🔍
+                </button>
+              </div>
+            </div>
           </div>
           
           {/* Inline tip when field is empty */}
           {name.length === 0 && (
             <div className="mt-2 p-3 bg-gray-800/50 border border-gray-600 rounded-lg">
-              <div className="text-xs text-blue-300 mb-2">
-                💡 Tipp: Beginne zu tippen, um gespeicherte Artikel als Vorschläge zu sehen
+              <div className="text-xs text-blue-300">
+                💡 Tippen Sie, um zu suchen oder klicken Sie auf die Lupe für die Artikelübersicht
               </div>
-              {favorites.length > 0 && (
-                <div>
-                  <div className="text-xs text-gray-400 font-medium mb-2">⭐ Schnell hinzufügen aus Favoriten:</div>
-                  <div className="flex flex-wrap gap-1">
-                    {favorites.slice(0, 6).map((fav, index) => (
-                      <button
-                        key={index}
-                        onClick={() => selectSuggestion(fav)}
-                        className="text-xs bg-blue-900/30 text-blue-300 px-2 py-1 rounded hover:bg-blue-800/50 transition-colors"
-                      >
-                        {fav.icon || '📦'} {fav.name}
-                      </button>
-                    ))}
-                    {favorites.length > 6 && (
-                      <span className="text-xs text-gray-500 px-2 py-1">
-                        +{favorites.length - 6} weitere
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           )}
           
           {/* Inline suggestions dropdown */}
           {showSuggestions && (
-            <div className="mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+            <div className="absolute left-0 right-0 mt-2 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto z-10">
+              <div className="border-b border-gray-600">
+                <div className="px-3 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer transition-colors"
+                     onClick={() => setShowArticleBrowser(true)}>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg">🔍</span>
+                    <span className="font-medium text-white">Alle Artikel durchsuchen</span>
+                  </div>
+                  <span className="text-xs text-blue-400 bg-blue-900/30 px-2 py-1 rounded">
+                    Suche
+                  </span>
+                </div>
+              </div>
+              
+              {favorites.length > 0 && (
+                <div className="border-b border-gray-600">
+                  <div className="px-3 py-2 bg-gray-700">
+                    <div className="text-xs text-gray-300 font-medium">
+                      ⭐ Favoriten
+                    </div>
+                  </div>
+                  <div className="max-h-24 overflow-y-auto">
+                    {favorites.slice(0, 6).map((fav, index) => (
+                      <div
+                        key={`fav-${index}`}
+                        className="px-3 py-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors"
+                        onClick={() => selectSuggestion(fav)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-lg">{fav.icon || '📦'}</span>
+                            <span className="font-medium text-white">{fav.name}</span>
+                            <span className="text-xs text-blue-400 bg-blue-900/30 px-2 py-1 rounded">
+                              {fav.category}
+                            </span>
+                          </div>
+                          <span className="text-xs text-yellow-400 bg-yellow-900/30 px-2 py-1 rounded">
+                            Favorit
+                          </span>
+                        </div>
+                        {fav.comment && (
+                          <div className="text-xs text-gray-400 mt-1 ml-6">{fav.comment}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="px-3 py-2 bg-gray-700 border-b border-gray-600">
                 <div className="text-xs text-gray-300 font-medium">
                   📋 Passende Artikel ({filteredSuggestions.length})
