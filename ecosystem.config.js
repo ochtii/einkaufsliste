@@ -46,9 +46,9 @@ module.exports = {
     },
     {
       name: "einkaufsliste-frontend",
-      script: "npx",
+      script: "npm",
       cwd: "./frontend",
-      args: "http-server build -p 3000 -a 0.0.0.0 --log-ip",
+      args: "start",
       instances: 1,
       autorestart: true,
       watch: false,
@@ -56,6 +56,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3000,
+        HOST: "0.0.0.0",
       },
       error_file: "./logs/frontend-error.log",
       out_file: "./logs/frontend-out.log",
