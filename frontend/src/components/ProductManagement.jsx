@@ -1,4 +1,5 @@
 // Update 2025-08-09: Commit-Trigger-Kommentar für Deployment
+// DEPLOY: Force deployment trigger
 import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as api from '../utils/api';
