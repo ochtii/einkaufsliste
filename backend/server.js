@@ -14,6 +14,14 @@ if (!JWT_SECRET || JWT_SECRET === 'your-secret-key-change-in-production') {
   process.exit(1);
 }
 
+// Secure Admin Password validation
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!ADMIN_PASSWORD) {
+  console.error('❌ FEHLER: ADMIN_PASSWORD Umgebungsvariable nicht gesetzt!');
+  console.error('   Setze eine sichere ADMIN_PASSWORD Umgebungsvariable vor dem Start.');
+  process.exit(1);
+}
+
 // Server start time for uptime calculation
 const serverStartTime = Date.now();
 
@@ -283,15 +291,16 @@ async function initDb() {
   try {
     const adminUser = await db.get('SELECT id FROM users WHERE username = ? AND is_admin = 1', 'admin');
     if (!adminUser) {
-      const adminPassword = await bcrypt.hash('admin123', 10);
+      const adminPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
       const adminUuid = crypto.randomUUID();
       await db.run(
         'INSERT OR REPLACE INTO users (uuid, username, password_hash, is_admin) VALUES (?, ?, ?, 1)',
         adminUuid, 'admin', adminPassword
       );
+      console.log('✅ Admin user created with environment password');
     }
   } catch (error) {
-    // Admin user creation failed or already exists
+    console.error('❌ Admin user creation failed:', error.message);
   }
   
   return db;

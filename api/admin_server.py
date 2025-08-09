@@ -30,6 +30,13 @@ logger = logging.getLogger(__name__)
 # Global server start time for uptime calculation
 server_start_time = time.time()
 
+# Security Configuration
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
+if not ADMIN_PASSWORD:
+    logger.error("❌ FEHLER: ADMIN_PASSWORD Umgebungsvariable nicht gesetzt!")
+    logger.error("   Setze eine sichere ADMIN_PASSWORD Umgebungsvariable vor dem Start.")
+    sys.exit(1)
+
 # Helper function to load HTML templates
 def load_template(template_name, fallback_html="<html><body><h1>Template not found</h1></body></html>"):
     """Load HTML template from templates directory"""
@@ -208,7 +215,7 @@ class AdminHandler(BaseHTTPRequestHandler):
         <input type="password" name="password" placeholder="Password" required style="padding: 10px; margin: 10px;">
         <br><button type="submit" style="padding: 10px 20px;">Login</button>
     </form>
-    <p>Default password: admin123</p>
+    <p>Use environment variable ADMIN_PASSWORD</p>
 </body>
 </html>''')
         self.send_response_with_headers(200, html)
@@ -261,9 +268,9 @@ class AdminHandler(BaseHTTPRequestHandler):
                 password = urllib.parse.unquote_plus(password)
                 
                 print(f"🔍 Debug - Received password: '{password}' (length: {len(password)})")
-                print(f"🔍 Debug - Expected password: 'admin123' (length: {len('admin123')})")
+                print(f"🔍 Debug - Expected password: '[ENVIRONMENT_VARIABLE]' (length: {len(ADMIN_PASSWORD)})")
                 
-                if password == 'admin123':
+                if password == ADMIN_PASSWORD:
                     # Create session
                     session_id = secrets.token_urlsafe(32)
                     with session_lock:
@@ -2351,7 +2358,7 @@ def main():
     logger.info("🚀 Einkaufsliste API Server v3 (Threaded) starting on http://18.197.100.102:5000")
     logger.info("📍 Admin Panel: http://18.197.100.102:5000/admin")
     logger.info("📖 API Docs: http://18.197.100.102:5000/docs")
-    logger.info("🔑 Admin Password: admin123")
+    logger.info("🔑 Admin Password: [Environment Variable Set]")
     
     try:
         server.serve_forever()
