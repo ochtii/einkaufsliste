@@ -34,7 +34,7 @@ module.exports = {
       max_memory_restart: "512M",
       env: {
         PYTHONPATH: ".",
-        PORT: 8000,
+        PORT: 5000,
         PYTHONUNBUFFERED: "1",
       },
       error_file: "./logs/api-error.log",

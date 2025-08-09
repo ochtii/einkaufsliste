@@ -1535,6 +1535,16 @@ async function main() {
     console.log(`Server started at: ${new Date(serverStartTime).toISOString()}`);
   });
 
+  // Add health endpoint
+  app.get('/api/health', (req, res) => {
+    res.json({
+      success: true,
+      status: 'healthy',
+      uptime: Date.now() - serverStartTime,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Add uptime endpoint
   app.get('/api/uptime', (req, res) => {
     const uptime = Date.now() - serverStartTime;

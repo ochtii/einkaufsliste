@@ -88,14 +88,14 @@ else
 fi
 
 # Check API  
-print_info "Testing API at http://localhost:8000/..."
-if curl -f -s http://localhost:8000/ >/dev/null 2>&1; then
+print_info "Testing API at http://localhost:5000/..."
+if curl -f -s http://localhost:5000/ >/dev/null 2>&1; then
     print_success "API is healthy"
     api_healthy=true
 else
     print_warning "API health check failed" 
     print_info "API debug info:"
-    curl -s http://localhost:8000/ || echo "Connection failed"
+    curl -s http://localhost:5000/ || echo "Connection failed"
     api_healthy=false
 fi
 
@@ -122,7 +122,7 @@ fi
 print_info "🌐 Application URLs:"
 print_info "   Frontend: http://localhost:3000"
 print_info "   Backend API: http://localhost:4000"
-print_info "   Admin Panel: http://localhost:8000/admin"
+print_info "   Admin Panel: http://localhost:5000/admin"
 
 print_success "Auto-deployment completed successfully! 🚀"
 

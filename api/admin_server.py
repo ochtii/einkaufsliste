@@ -2351,17 +2351,20 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
+    # Get port from environment variable or default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    
     # Start session cleanup thread
     cleanup_thread = threading.Thread(target=lambda: None, daemon=True)
     cleanup_thread.start()
     
     # Start server
-    server = ThreadedHTTPServer(('0.0.0.0', 5000), AdminHandler)
+    server = ThreadedHTTPServer(('0.0.0.0', port), AdminHandler)
     
     logger.info("🧹 Starting session cleanup...")
-    logger.info("🚀 Einkaufsliste API Server v3 (Threaded) starting on http://18.197.100.102:8000")
-    logger.info("📍 Admin Panel: http://18.197.100.102:8000/admin")
-    logger.info("📖 API Docs: http://18.197.100.102:8000/docs")
+    logger.info(f"🚀 Einkaufsliste API Server v3 (Threaded) starting on http://18.197.100.102:{port}")
+    logger.info(f"📍 Admin Panel: http://18.197.100.102:{port}/admin")
+    logger.info(f"📖 API Docs: http://18.197.100.102:{port}/docs")
     logger.info("🔑 Admin Password: [Environment Variable Set]")
     
     try:
