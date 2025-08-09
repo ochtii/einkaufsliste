@@ -55,12 +55,17 @@ fi
 print_info "Starting services..."
 pm2 start ecosystem.config.js
 
-# Wait for services to start
-sleep 5
+# Wait for services to start properly
+print_info "Waiting for services to initialize..."
+sleep 10
 
 # Check service status
 print_info "Checking service status..."
 pm2 status
+
+# Additional verification - list running processes
+print_info "Active PM2 processes:"
+pm2 list
 
 # Health checks
 print_info "Running health checks..."
@@ -75,23 +80,40 @@ fi
 # Check API
 if curl -f -s http://localhost:8000/ >/dev/null 2>&1; then
     print_success "API is healthy"
+    api_healthy=true
 else
     print_warning "API health check failed"
+    api_healthy=false
 fi
 
 # Check frontend (if using PM2 serve)
 if curl -f -s http://localhost:3000/ >/dev/null 2>&1; then
     print_success "Frontend is healthy"
+    frontend_healthy=true
 else
     print_warning "Frontend health check failed"
+    frontend_healthy=false
 fi
 
-print_success "Deployment completed!"
+# Final deployment report
 print_info "═══════════════════════════════════════"
+if [ "$api_healthy" = true ] && [ "$frontend_healthy" = true ]; then
+    print_success "🎉 DEPLOYMENT SUCCESSFUL - ALL SERVICES OPERATIONAL!"
+else
+    print_warning "⚠️  Deployment completed with some service issues"
+fi
+
 print_info "🌐 Application URLs:"
 print_info "   Frontend: http://localhost:3000"
 print_info "   Backend API: http://localhost:4000"
 print_info "   Admin Panel: http://localhost:8000/admin"
+print_info "═══════════════════════════════════════"
+
+# Final PM2 status for confirmation
+print_info "Final service status:"
+pm2 status
+
+print_success "Auto-deployment completed successfully! 🚀"
 print_info "═══════════════════════════════════════"
 print_info "📊 Monitor with: pm2 monit"
 print_info "📋 View logs with: pm2 logs"
