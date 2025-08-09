@@ -73,8 +73,8 @@ pm2 start ecosystem.config.js --env production
 ✅ **Behobene Probleme:**
 
 1. **Hardcoded Passwords entfernt**:
-   - Backend: `HureAgnes21` → Environment Variable
-   - API: `admin123` → Environment Variable
+   - Backend: Hardcoded Password → Environment Variable
+   - API: Hardcoded Password → Environment Variable
 2. **JWT Secret sicher**:
    - Fallback-Secret entfernt
    - Startup-Validation hinzugefügt

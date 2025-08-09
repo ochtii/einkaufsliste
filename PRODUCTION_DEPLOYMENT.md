@@ -49,7 +49,7 @@
 
 ## Default Credentials
 
-- **Admin**: admin / admin123
+- **Admin**: admin / [Environment Variable ADMIN_PASSWORD]
 - **Test User**: test / test123
 
 ## Environment Variables
