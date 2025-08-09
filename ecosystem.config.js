@@ -97,7 +97,7 @@ module.exports = {
       interpreter: "python3",
       instances: 1,
       autorestart: true,
-      watch: false,
+      watch: false,  // ❌ NICHT für Webhook! Führt zu endless loops
       max_memory_restart: "256M",
       env: {
         GITHUB_WEBHOOK_SECRET: "einkaufsliste-webhook-secret",
