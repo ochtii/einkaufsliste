@@ -66,7 +66,12 @@ jobs:
         cat > demo-seed.js << 'EOF'
         import sqlite3 from 'sqlite3';
         import bcrypt from 'bcrypt';
-        import { v4 as uuidv4 } from 'uuid';
+        import crypto from 'crypto';
+        
+        // Simple UUID v4 generator using Node.js crypto
+        function generateUUID() {
+          return crypto.randomUUID();
+        }
         
         const db = new sqlite3.Database('./demo.sqlite');
         
@@ -134,7 +139,7 @@ jobs:
           db.run(`INSERT OR IGNORE INTO users (uuid, username, email, password, role) VALUES 
             (?, 'demo', 'demo@example.com', ?, 'user'),
             (?, 'admin', 'admin@example.com', ?, 'admin')
-          `, [uuidv4(), demoPasswordHash, uuidv4(), adminPasswordHash]);
+          `, [generateUUID(), demoPasswordHash, generateUUID(), adminPasswordHash]);
           
           // Seed demo categories
           db.run(`INSERT OR IGNORE INTO categories (name, icon, is_global) VALUES 
