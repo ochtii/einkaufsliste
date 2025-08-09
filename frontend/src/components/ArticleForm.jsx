@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as api from '../utils/api';
 
+// Fixed duplicate import issue - Clean version
 export default function ArticleForm({ onAdded, currentList, token }) {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
