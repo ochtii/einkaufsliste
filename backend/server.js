@@ -393,21 +393,38 @@ async function main() {
       console.log(`   📦 Body: ${JSON.stringify(sanitizedBody, null, 2)}`);
     }
     
+    // Set start time before setting up response logging
+    req.startTime = Date.now();
+    
     // Log response when it's sent
     const originalSend = res.send;
+    const originalJson = res.json;
+    const originalStatus = res.status;
+    
     res.send = function(data) {
       const responseTime = Date.now() - req.startTime;
       console.log(`   ✅ Response: ${res.statusCode} | Time: ${responseTime}ms`);
-      if (data && typeof data === 'string' && data.length < 500) {
+      if (data && typeof data === 'string' && data.length < 1000) {
         console.log(`   📤 Response Data: ${data}`);
       } else if (data) {
         console.log(`   📤 Response Data: [${typeof data}] ${data.length || 'N/A'} bytes`);
       }
       console.log(`   ───────────────────────────────────────────────────`);
-      originalSend.call(this, data);
+      return originalSend.call(this, data);
     };
     
-    req.startTime = Date.now();
+    res.json = function(data) {
+      const responseTime = Date.now() - req.startTime;
+      console.log(`   ✅ Response: ${res.statusCode} | Time: ${responseTime}ms`);
+      if (data && JSON.stringify(data).length < 1000) {
+        console.log(`   📤 Response JSON: ${JSON.stringify(data, null, 2)}`);
+      } else if (data) {
+        console.log(`   📤 Response JSON: [object] ${JSON.stringify(data).length} bytes`);
+      }
+      console.log(`   ───────────────────────────────────────────────────`);
+      return originalJson.call(this, data);
+    };
+    
     next();
   });
   
