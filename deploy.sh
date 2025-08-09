@@ -127,18 +127,5 @@ print_info "📊 Monitor with: pm2 monit"
 print_info "📋 View logs with: pm2 logs"
 print_info "🔄 Restart services with: pm2 restart ecosystem.config.js"
 
-# Force output flush before waiting
-print_info "waiting now"
-sleep 0.1  # Small delay to ensure output is flushed
-
-# Wait 7 seconds and show final status
-# Force flush output before waiting
-exec 1>&1
-for i in {7..1}; do
-    echo -n "$i... "
-    sleep 1
-done
-echo ""
-
 print_info "Final status:"
 pm2 status
