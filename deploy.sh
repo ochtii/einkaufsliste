@@ -50,6 +50,10 @@ cd ..
 print_info "Stopping existing services..."
 pm2 stop einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api 2>/dev/null || print_warning "Some services were not running"
 
+# Delete and recreate services to force config reload
+print_info "Forcing complete service restart with new configuration..."
+pm2 delete einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api 2>/dev/null || print_warning "Some services were already deleted"
+
 # Database backup
 if [ -f "backend/db.sqlite" ]; then
     print_info "Creating database backup..."
@@ -58,13 +62,10 @@ if [ -f "backend/db.sqlite" ]; then
 fi
 
 # Start services (except webhook which is already running)
-print_info "Starting services..."
-pm2 restart einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api 2>/dev/null || {
-    print_info "Some services not running, starting them fresh..."
-    pm2 start ecosystem.config.js --only einkaufsliste-backend
-    pm2 start ecosystem.config.js --only einkaufsliste-frontend  
-    pm2 start ecosystem.config.js --only einkaufsliste-api
-}
+print_info "Starting services with fresh configuration..."
+pm2 start ecosystem.config.js --only einkaufsliste-backend
+pm2 start ecosystem.config.js --only einkaufsliste-frontend  
+pm2 start ecosystem.config.js --only einkaufsliste-api
 
 # Check service status
 print_info "Checking service status..."
