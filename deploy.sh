@@ -120,11 +120,13 @@ print_info "   Backend API: http://localhost:4000"
 print_info "   Admin Panel: http://localhost:8000/admin"
 print_info "═══════════════════════════════════════"
 
-# Final PM2 status for confirmation
-print_info "Final service status:"
-pm2 status
+print_success "Auto-deployment completed successfully! 🚀"
+print_info "═══════════════════════════════════════"
+print_info "📊 Monitor with: pm2 monit"
+print_info "📋 View logs with: pm2 logs"
+print_info "🔄 Restart services with: pm2 restart ecosystem.config.js"
 
-# Wait a bit longer and check status again
+# Wait 7 seconds and show final status
 print_info "Waiting 7 seconds for full initialization..."
 for i in {7..1}; do
     echo -n "$i... "
@@ -132,11 +134,5 @@ for i in {7..1}; do
 done
 echo ""
 
-print_info "Final status check after initialization:"
+print_info "Final status:"
 pm2 status
-
-print_success "Auto-deployment completed successfully! 🚀"
-print_info "═══════════════════════════════════════"
-print_info "📊 Monitor with: pm2 monit"
-print_info "📋 View logs with: pm2 logs"
-print_info "🔄 Restart services with: pm2 restart ecosystem.config.js"
