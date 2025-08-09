@@ -70,31 +70,44 @@ pm2 restart einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api 2>/de
 print_info "Checking service status..."
 pm2 status
 
+# Give services time to fully start
+print_info "Allowing services to initialize..."
+sleep 3
+
 # Health checks
 print_info "Running health checks..."
 
 # Check backend
+print_info "Testing backend at http://localhost:4000/api/health..."
 if curl -f -s http://localhost:4000/api/health >/dev/null 2>&1; then
     print_success "Backend is healthy"
 else
     print_warning "Backend health check failed"
+    print_info "Backend debug info:"
+    curl -s http://localhost:4000/api/health || echo "Connection failed"
 fi
 
-# Check API
+# Check API  
+print_info "Testing API at http://localhost:8000/..."
 if curl -f -s http://localhost:8000/ >/dev/null 2>&1; then
     print_success "API is healthy"
     api_healthy=true
 else
-    print_warning "API health check failed"
+    print_warning "API health check failed" 
+    print_info "API debug info:"
+    curl -s http://localhost:8000/ || echo "Connection failed"
     api_healthy=false
 fi
 
 # Check frontend
+print_info "Testing frontend at http://localhost:3000/..."
 if curl -f -s http://localhost:3000/ >/dev/null 2>&1; then
     print_success "Frontend is healthy"
     frontend_healthy=true
 else
     print_warning "Frontend health check failed"
+    print_info "Frontend debug info:"
+    curl -s http://localhost:3000/ || echo "Connection failed"
     frontend_healthy=false
 fi
 
