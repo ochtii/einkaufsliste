@@ -11,8 +11,10 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 4000,
-        JWT_SECRET: process.env.JWT_SECRET || "CHANGE_THIS_JWT_SECRET_IN_PRODUCTION",
-        ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "CHANGE_THIS_ADMIN_PASSWORD",
+        JWT_SECRET:
+          process.env.JWT_SECRET || "CHANGE_THIS_JWT_SECRET_IN_PRODUCTION",
+        ADMIN_PASSWORD:
+          process.env.ADMIN_PASSWORD || "CHANGE_THIS_ADMIN_PASSWORD",
       },
       error_file: "./logs/backend-error.log",
       out_file: "./logs/backend-out.log",

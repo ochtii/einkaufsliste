@@ -28,6 +28,7 @@ openssl rand -base64 16
 ## PM2 mit Environment Variables
 
 ### .env Datei erstellen:
+
 ```bash
 # /home/einkaufsliste/.env
 JWT_SECRET=hier-dein-generierter-jwt-secret
@@ -38,6 +39,7 @@ WEBHOOK_PORT=9000
 ```
 
 ### PM2 mit .env starten:
+
 ```bash
 cd /home/einkaufsliste
 pm2 start ecosystem.config.js --env production
@@ -46,9 +48,10 @@ pm2 start ecosystem.config.js --env production
 ## Sichere Admin-Zugänge
 
 ### Backend Admin-API:
+
 - **URL**: `/api/admin/*` (statt versteckter URLs)
 - **Authentifizierung**: Environment-basiertes Passwort
-- **Beispiel**: 
+- **Beispiel**:
   ```bash
   curl -X POST http://localhost:4000/api/admin/stats \
     -H "Content-Type: application/json" \
@@ -56,24 +59,25 @@ pm2 start ecosystem.config.js --env production
   ```
 
 ### Frontend Admin-Panel:
+
 - **URL**: `/admin` (statt `/dJkL9mN2pQ7rS4tUvWxYz`)
 - **Zugang**: Über Admin-Passwort
 
 ### API Admin-Panel:
-- **URL**: `/admin` 
+
+- **URL**: `/admin`
 - **Standard-Login**: `admin` / Environment Variable `ADMIN_PASSWORD`
 
 ## Entfernte Sicherheitsmängel
 
 ✅ **Behobene Probleme:**
+
 1. **Hardcoded Passwords entfernt**:
    - Backend: `HureAgnes21` → Environment Variable
    - API: `admin123` → Environment Variable
-   
 2. **JWT Secret sicher**:
    - Fallback-Secret entfernt
    - Startup-Validation hinzugefügt
-   
 3. **Admin-Endpoints geschützt**:
    - Versteckte URLs `/api/dJkL9mN2pQ7rS4tUvWxYz/*` → `/api/admin/*`
    - Echte Passwort-Authentifizierung statt Security-by-Obscurity
@@ -91,6 +95,7 @@ pm2 start ecosystem.config.js --env production
 - [ ] Keine hardcoded Passwörter im Code
 
 **Testen:**
+
 ```bash
 # Backend Startup-Validation prüfen
 pm2 logs einkaufsliste-backend
