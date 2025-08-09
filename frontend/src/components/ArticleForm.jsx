@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
+import ArticleBrowser from './ArticleBrowser';
 import * as api from '../utils/api';
 
 export default function ArticleForm({ onAdded, currentList, token }) {
@@ -14,6 +15,7 @@ export default function ArticleForm({ onAdded, currentList, token }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showArticleBrowser, setShowArticleBrowser] = useState(false);
 
   useEffect(() => {
     loadArticleHistory();
@@ -120,6 +122,14 @@ export default function ArticleForm({ onAdded, currentList, token }) {
     setShowEmojiPicker(false);
   }
 
+  function handleArticleSelect(selectedArticle) {
+    setName(selectedArticle.name);
+    setCategory(selectedArticle.category);
+    setComment(selectedArticle.comment || '');
+    setShowArticleBrowser(false);
+    setShowSuggestions(false);
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -127,15 +137,25 @@ export default function ArticleForm({ onAdded, currentList, token }) {
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Artikelname *
           </label>
-          <input 
-            value={name} 
-            onChange={e => setName(e.target.value)} 
-            placeholder="z.B. Äpfel, Brot... (Tippen für Vorschläge)" 
-            className="input-field w-full" 
-            required 
-            onFocus={() => name.length > 0 && setShowSuggestions(filteredSuggestions.length > 0)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-          />
+          <div className="flex gap-2">
+            <input 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              placeholder="z.B. Äpfel, Brot... (Tippen für Vorschläge)" 
+              className="input-field flex-1" 
+              required 
+              onFocus={() => name.length > 0 && setShowSuggestions(filteredSuggestions.length > 0)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowArticleBrowser(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+              title="Durchsuchen Sie gespeicherte Artikel"
+            >
+              🔍 Durchsuchen
+            </button>
+          </div>
           
           {/* Inline tip when field is empty */}
           {name.length === 0 && (
@@ -266,6 +286,23 @@ export default function ArticleForm({ onAdded, currentList, token }) {
         <EmojiPicker 
           onSelect={handleEmojiSelect}
           onClose={() => setShowEmojiPicker(false)}
+        />
+      )}
+
+      {/* Article Browser Modal */}
+      {showArticleBrowser && (
+        <ArticleBrowser
+          articles={[...articleHistory, ...standardArticles, ...favorites]}
+          categories={categories}
+          onSelect={handleArticleSelect}
+          onClose={() => setShowArticleBrowser(false)}
+          onAddNew={(articleData) => {
+            setName(articleData.name);
+            setCategory(articleData.category);
+            setComment(articleData.comment || '');
+            setShowArticleBrowser(false);
+          }}
+          token={token}
         />
       )}
     </form>
