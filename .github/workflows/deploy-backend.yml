@@ -1,14 +1,16 @@
 # =============================================================================
-# Demo Backend Deployment Workflow
+# Demo Backend Deployment Workflow - DISABLED (Using Webhook Instead)
 # =============================================================================
 name: Deploy Demo Backend
 
+# DISABLED: Using webhook-based deployment instead of GitHub Actions
+# to avoid conflicts between multiple deployment systems
 on:
-  push:
-    branches: [ live ]
-    paths: 
-      - 'backend/**'
-      - '.github/workflows/deploy-backend.yml'
+  # push:
+  #   branches: [ live ]
+  #   paths: 
+  #     - 'backend/**'
+  #     - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
 
 jobs:

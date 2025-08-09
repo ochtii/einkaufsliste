@@ -105,16 +105,15 @@ class WebhookHandler(BaseHTTPRequestHandler):
     def _trigger_deployment(self, data):
         """Execute deployment script"""
         try:
-            # Check if repo path exists and is accessible
-            if not os.path.exists(REPO_PATH):
-                raise Exception(f"Repository path does not exist: {REPO_PATH}")
+            # Auto-detect correct repository path
+            repo_path = self._find_repo_path()
+            deploy_script = os.path.join(repo_path, 'deploy.sh')
             
-            if not os.access(REPO_PATH, os.R_OK | os.W_OK):
-                raise Exception(f"No read/write permissions for: {REPO_PATH}")
+            logger.info(f"Using repository path: {repo_path}")
             
             # Change to repo directory
-            logger.info(f"Changing to directory: {REPO_PATH}")
-            os.chdir(REPO_PATH)
+            logger.info(f"Changing to directory: {repo_path}")
+            os.chdir(repo_path)
             
             # Pull latest changes
             logger.info("Pulling latest changes from live branch...")
@@ -122,9 +121,9 @@ class WebhookHandler(BaseHTTPRequestHandler):
             subprocess.run(['git', 'reset', '--hard', 'origin/live'], check=True)
             
             # Run deployment script
-            if os.path.exists(DEPLOY_SCRIPT):
-                logger.info(f"Executing deployment script: {DEPLOY_SCRIPT}")
-                result = subprocess.run(['/bin/bash', DEPLOY_SCRIPT], 
+            if os.path.exists(deploy_script):
+                logger.info(f"Executing deployment script: {deploy_script}")
+                result = subprocess.run(['/bin/bash', deploy_script], 
                                       capture_output=True, text=True, timeout=300)
                 
                 if result.returncode == 0:
@@ -134,7 +133,7 @@ class WebhookHandler(BaseHTTPRequestHandler):
                     logger.error(f"Deployment failed: {result.stderr}")
                     raise Exception(f"Deploy script failed with code {result.returncode}")
             else:
-                logger.error(f"Deployment script not found: {DEPLOY_SCRIPT}")
+                logger.error(f"Deployment script not found: {deploy_script}")
                 raise Exception("Deploy script not found")
                 
         except subprocess.TimeoutExpired:
@@ -143,6 +142,30 @@ class WebhookHandler(BaseHTTPRequestHandler):
         except Exception as e:
             logger.error(f"Deployment error: {str(e)}")
             raise
+    
+    def _find_repo_path(self):
+        """Auto-detect the correct repository path"""
+        possible_paths = [
+            REPO_PATH,  # Environment variable or default
+            '/var/www/einkaufsliste',
+            '/home/einkaufsliste', 
+            '/opt/einkaufsliste',
+            '/srv/einkaufsliste',
+            os.path.expanduser('~/einkaufsliste'),
+            '/home/ubuntu/einkaufsliste',
+            '/home/ec2-user/einkaufsliste'
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path) and os.access(path, os.R_OK | os.W_OK):
+                # Check if it's actually a git repository
+                git_dir = os.path.join(path, '.git')
+                deploy_script = os.path.join(path, 'deploy.sh')
+                if os.path.exists(git_dir) and os.path.exists(deploy_script):
+                    logger.info(f"Found valid repository at: {path}")
+                    return path
+        
+        raise Exception(f"No accessible repository found. Checked: {possible_paths}")
     
     def _send_response(self, status_code, data):
         """Send JSON response"""
