@@ -20,13 +20,6 @@ export default function LoginForm({ onSwitchToRegister, registrationSuccess, onC
       const isDemoMode = window.location.hostname === 'ochtii.github.io' || 
                         (window.location.hostname === 'localhost' && window.location.search.includes('demo=true'));
       
-      console.log('Demo mode check:', {
-        hostname: window.location.hostname,
-        isDemoMode,
-        hasDemoAPI: !!window.DemoAPI,
-        hasDemoConfig: !!window.DEMO_CONFIG
-      });
-      
       if (isDemoMode) {
         // In demo mode, ONLY use DemoAPI - never fall back to backend
         let attempts = 0;
@@ -34,36 +27,29 @@ export default function LoginForm({ onSwitchToRegister, registrationSuccess, onC
         
         // Wait for DemoAPI to be available
         while (!window.DemoAPI && attempts < maxAttempts) {
-          console.log(`Waiting for DemoAPI... attempt ${attempts + 1}/${maxAttempts}`);
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
         
         if (!window.DemoAPI) {
-          console.error('DemoAPI not available after timeout');
           setError('Demo-API konnte nicht geladen werden. Bitte Seite neu laden und erneut versuchen.');
           return;
         }
         
-        console.log('Using DemoAPI for authentication');
         try {
           const demoResult = window.DemoAPI.login(username, password);
-          console.log('Demo login successful:', demoResult);
           login(demoResult.token, demoResult.user);
           return;
         } catch (demoError) {
-          console.error('Demo login failed:', demoError);
           setError('Ungültige Demo-Anmeldedaten. Verwende: demo/demo123 oder admin/admin123');
           return;
         }
       }
 
       // Regular backend login (only for non-demo mode)
-      console.log('Attempting regular backend login');
       const data = await api.loginUser(username, password);
       login(data.token, data.user);
     } catch (error) {
-      console.error('Login error:', error);
       setError('Verbindungsfehler. Versuche es später erneut.');
     } finally {
       setLoading(false);

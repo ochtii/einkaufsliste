@@ -226,7 +226,7 @@ async function initDb() {
       await db.run('UPDATE users SET uuid = ? WHERE id = ?', userUuid, user.id);
     }
   } catch (error) {
-    console.log('UUID migration completed or not needed');
+    // UUID migration completed or not needed
   }
   
   // Add UUID columns to remaining tables that still use old schema
@@ -269,9 +269,8 @@ async function initDb() {
       WHERE user_uuid IS NULL AND user_id IS NOT NULL
     `);
     
-    console.log('Remaining UUID migration completed');
   } catch (error) {
-    console.log('Remaining UUID migration completed or not needed');
+    // Remaining UUID migration completed or not needed
   }
   
   // Create default admin user if not exists
@@ -284,10 +283,9 @@ async function initDb() {
         'INSERT OR REPLACE INTO users (uuid, username, password_hash, is_admin) VALUES (?, ?, ?, 1)',
         adminUuid, 'admin', adminPassword
       );
-      console.log('Default admin user created: admin/admin123');
     }
   } catch (error) {
-    console.log('Admin user creation failed:', error.message);
+    // Admin user creation failed or already exists
   }
   
   return db;
@@ -376,52 +374,24 @@ async function main() {
   app.use(cors());
   app.use(express.json());
   
-  // API Debug Logging Middleware
+  // Basic Request Logging Middleware
   app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
     const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
     
-    console.log(`🔍 [${timestamp}] ${req.method} ${req.originalUrl}`);
-    console.log(`   📍 Client IP: ${clientIP}`);
-    console.log(`   📋 Headers: ${JSON.stringify(req.headers, null, 2)}`);
-    
-    if (req.body && Object.keys(req.body).length > 0) {
-      // Mask sensitive data in logs
-      const sanitizedBody = { ...req.body };
-      if (sanitizedBody.password) sanitizedBody.password = '***';
-      if (sanitizedBody.confirmPassword) sanitizedBody.confirmPassword = '***';
-      console.log(`   📦 Body: ${JSON.stringify(sanitizedBody, null, 2)}`);
+    // Only log non-routine requests or errors
+    if (req.method !== 'GET' || req.originalUrl.includes('admin') || req.originalUrl.includes('error')) {
+      console.log(`🔍 [${timestamp}] ${req.method} ${req.originalUrl} - IP: ${clientIP}`);
     }
     
-    // Set start time before setting up response logging
-    req.startTime = Date.now();
-    
-    // Log response when it's sent
-    const originalSend = res.send;
+    // Simplified response logging
     const originalJson = res.json;
-    const originalStatus = res.status;
-    
-    res.send = function(data) {
-      const responseTime = Date.now() - req.startTime;
-      console.log(`   ✅ Response: ${res.statusCode} | Time: ${responseTime}ms`);
-      if (data && typeof data === 'string' && data.length < 1000) {
-        console.log(`   📤 Response Data: ${data}`);
-      } else if (data) {
-        console.log(`   📤 Response Data: [${typeof data}] ${data.length || 'N/A'} bytes`);
-      }
-      console.log(`   ───────────────────────────────────────────────────`);
-      return originalSend.call(this, data);
-    };
     
     res.json = function(data) {
       const responseTime = Date.now() - req.startTime;
-      console.log(`   ✅ Response: ${res.statusCode} | Time: ${responseTime}ms`);
-      if (data && JSON.stringify(data).length < 1000) {
-        console.log(`   📤 Response JSON: ${JSON.stringify(data, null, 2)}`);
-      } else if (data) {
-        console.log(`   📤 Response JSON: [object] ${JSON.stringify(data).length} bytes`);
+      if (req.originalUrl.includes('admin') || res.statusCode >= 400) {
+        console.log(`   ✅ Response: ${res.statusCode} | Time: ${responseTime}ms`);
       }
-      console.log(`   ───────────────────────────────────────────────────`);
       return originalJson.call(this, data);
     };
     
@@ -430,10 +400,7 @@ async function main() {
   
   const db = await initDb();
 
-  // Clear all existing sessions on server restart
-  console.log('🔄 Server gestartet - Alle bestehenden Sessions werden gelöscht...');
-  
-  // Create a simple in-memory blacklist for existing tokens (in production use Redis)
+  // Session management
   const tokenBlacklist = new Set();
   
   // Enhanced JWT middleware with blacklist check
@@ -1474,28 +1441,6 @@ async function main() {
   // Legacy endpoints for backward compatibility (if not authenticated, return empty arrays)
   app.get('/api/articles', async (req, res) => {
     res.json([]);
-  });
-
-  // Test endpoint for automatic logout functionality
-  app.get('/api/test-invalid-session', authenticateTokenWithBlacklist, async (req, res) => {
-    // Simulate an invalid session by adding the current token to blacklist
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token) {
-      tokenBlacklist.add(token);
-    }
-    res.status(401).json({ error: 'Token invalidated - testing auto logout' });
-  });
-
-  app.post('/api/articles', async (req, res) => {
-    res.status(401).json({ error: 'Authentication required' });
-  });
-
-  app.put('/api/articles/:id', async (req, res) => {
-    res.status(401).json({ error: 'Authentication required' });
-  });
-
-  app.delete('/api/articles/:id', async (req, res) => {
-    res.status(401).json({ error: 'Authentication required' });
   });
 
   // Get database logs (Admin only)

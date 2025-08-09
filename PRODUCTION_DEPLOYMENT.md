@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - Python 3.8+
 - PM2 process manager
 - Git
@@ -10,6 +10,7 @@
 ## Quick Start
 
 1. **Clone and Setup**
+
    ```bash
    git clone https://github.com/ochtii/einkaufsliste.git
    cd einkaufsliste
@@ -18,6 +19,7 @@
    ```
 
 2. **Start Services**
+
    ```bash
    ./start-all-services.sh
    ```
@@ -55,6 +57,7 @@
 Create `.env` files in each directory:
 
 ### Backend (.env)
+
 ```
 JWT_SECRET=your-super-secret-jwt-key-here
 NODE_ENV=production
@@ -62,6 +65,7 @@ PORT=4000
 ```
 
 ### API (.env)
+
 ```
 ADMIN_PASSWORD=your-admin-password-here
 PORT=8000
@@ -106,6 +110,7 @@ server {
 ## Database Backup
 
 Automatic backups are created during deployment. Manual backup:
+
 ```bash
 ./manage.sh backup
 ```
@@ -113,18 +118,22 @@ Automatic backups are created during deployment. Manual backup:
 ## Troubleshooting
 
 ### Services not starting
+
 ```bash
 pm2 kill
 pm2 start ecosystem.config.js
 ```
 
 ### Database issues
+
 Check logs:
+
 ```bash
 pm2 logs einkaufsliste-backend
 ```
 
 ### Port conflicts
+
 Change ports in `ecosystem.config.js`
 
 ## Security Considerations

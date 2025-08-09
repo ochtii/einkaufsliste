@@ -372,7 +372,6 @@ if (window.DEMO_CONFIG.features.offlineMode) {
           return { ok: true, json: () => Promise.resolve([]) };
           
         default:
-          console.warn('Unhandled DemoAPI endpoint:', endpoint, method);
           return { 
             ok: true, 
             json: () => Promise.resolve([])
@@ -380,9 +379,9 @@ if (window.DEMO_CONFIG.features.offlineMode) {
       }
     }
   };
-  console.log('✅ DemoAPI successfully initialized!', window.DemoAPI);
+  // DemoAPI initialized successfully
 } else {
-  console.log('❌ DemoAPI not initialized:', { isDemoMode, offlineMode: window.DEMO_CONFIG?.features?.offlineMode });
+  // DemoAPI not initialized - demo mode requirements not met
 }
 
 // Export configuration

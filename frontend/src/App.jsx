@@ -46,7 +46,6 @@ function MainApp() {
       setArticles(articles);
     } catch (err) {
       setError('Verbindungsfehler: ' + err.message);
-      console.error('Fetch error:', err);
     } finally {
       setLoading(false);
     }
@@ -57,7 +56,7 @@ function MainApp() {
       const favorites = await api.fetchFavorites(token);
       setFavorites(favorites);
     } catch (err) {
-      console.error('Error loading favorites:', err);
+      // Silent fail for favorites loading
     }
   }, [token]);
 
@@ -229,23 +228,6 @@ function MainApp() {
               </div>
               
               {/* Test auto logout */}
-              <div className="border-t border-gray-700 pt-4">
-                <h3 className="text-white font-medium mb-2">🧪 Test-Funktionen</h3>
-                <div className="space-y-2">
-                  <button 
-                    onClick={async () => {
-                      try {
-                        await api.fetchData('/test-invalid-session', { headers: { 'Authorization': `Bearer ${token}` } });
-                      } catch (err) {
-                        console.log('Test erfolgreich - automatisches Ausloggen ausgelöst');
-                      }
-                    }}
-                    className="btn-secondary text-sm w-full text-yellow-400 border-yellow-600 hover:bg-yellow-600/20"
-                  >
-                    🔐 Session invalidieren (Test)
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         )}
