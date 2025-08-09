@@ -128,7 +128,6 @@ print_info "🔄 Restart services with: pm2 restart ecosystem.config.js"
 
 # Wait 7 seconds and show final status
 print_info "waiting now"
-print_info "Waiting 7 seconds for full initialization..."
 for i in {7..1}; do
     echo -n "$i... "
     sleep 1
