@@ -55,6 +55,8 @@ module.exports = {
       out_file: "./logs/frontend-out.log",
       log_file: "./logs/frontend-combined.log",
       time: true,
+      merge_logs: true,
+      combine_logs: true,
     },
     {
       name: "einkaufsliste-webhook",
