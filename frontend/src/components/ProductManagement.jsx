@@ -5,13 +5,40 @@ import EmojiPicker from './EmojiPicker';
 import * as api from '../utils/api';
 
 const ProductManagement = ({ onClose }) => {
+  // Helper function for API requests
+  const apiRequest = async (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+    
+    const response = await fetch(`/${url}`, {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers
+      }
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(error.error || 'API request failed');
+    }
+    
+    return response.json();
+  };
+
   const [standardArticles, setStandardArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   const [customArticles, setCustomArticles] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
   const [newArticle, setNewArticle] = useState({ name: '', icon: '', category: '' });
+  const [newFavorite, setNewFavorite] = useState({ name: '', icon: '', category: '', searchQuery: '' });
   const [showAddArticle, setShowAddArticle] = useState(false);
+  const [showAddFavorite, setShowAddFavorite] = useState(false);
+  const [filteredStandardArticles, setFilteredStandardArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('view');
   const [editMode, setEditMode] = useState(false);
@@ -144,6 +171,70 @@ const ProductManagement = ({ onClose }) => {
     } catch (error) {
       console.error('Error adding article:', error);
       alert('Fehler beim Hinzufügen des Artikels');
+    }
+  };
+
+  // Filter standard articles based on search query
+  const handleStandardArticleSearch = (query) => {
+    if (!query.trim()) {
+      setFilteredStandardArticles([]);
+      return;
+    }
+    
+    const filtered = groupedArticles.standard?.filter(article => 
+      article.name.toLowerCase().includes(query.toLowerCase())
+    ) || [];
+    setFilteredStandardArticles(filtered);
+  };
+
+  // Add favorite from standard article
+  const addFavoriteFromStandard = async (standardArticle) => {
+    try {
+      const newFav = {
+        name: standardArticle.name,
+        icon: standardArticle.icon,
+        category: newFavorite.category || standardArticle.category
+      };
+      
+      await apiRequest('api/articles', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...newFav,
+          type: 'favorite'
+        })
+      });
+      
+      setNewFavorite({ name: '', icon: '', category: '', searchQuery: '' });
+      setFilteredStandardArticles([]);
+      fetchStandardArticles();
+      fetchCustomArticles();
+      fetchFavorites();
+    } catch (error) {
+      console.error('Error adding favorite:', error);
+    }
+  };
+
+  // Add new favorite
+  const addFavorite = async () => {
+    if (!newFavorite.name.trim() || !newFavorite.category) return;
+    
+    try {
+      await apiRequest('api/articles', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...newFavorite,
+          type: 'favorite'
+        })
+      });
+      
+      setNewFavorite({ name: '', icon: '', category: '', searchQuery: '' });
+      setShowAddFavorite(false);
+      setFilteredStandardArticles([]);
+      fetchStandardArticles();
+      fetchCustomArticles();
+      fetchFavorites();
+    } catch (error) {
+      console.error('Error adding favorite:', error);
     }
   };
 
@@ -809,24 +900,16 @@ const ProductManagement = ({ onClose }) => {
                   <div className="bg-gray-700 p-4 rounded-lg">
                     <form onSubmit={handleAddArticle} className="flex items-center gap-2">
                       <div className="flex items-center gap-1">
-                        <input
-                          type="text"
-                          value={newArticle.icon}
-                          onChange={(e) => setNewArticle({...newArticle, icon: e.target.value})}
-                          className="w-10 px-1 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="📦"
-                          maxLength={2}
-                        />
                         <button
                           type="button"
                           onClick={() => {
                             setEmojiTarget('newArticle');
                             setShowEmojiPicker(true);
                           }}
-                          className="p-1 text-gray-400 hover:text-white text-sm"
+                          className="w-10 h-10 bg-gray-600 border border-gray-500 rounded-lg text-white text-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center"
                           title="Symbol auswählen"
                         >
-                          😀
+                          {newArticle.icon || '�'}
                         </button>
                       </div>
                       <input
@@ -1081,6 +1164,144 @@ const ProductManagement = ({ onClose }) => {
                       </div>
                     </div>
                   ))
+                )}
+              </div>
+
+              {/* Add Favorite Form */}
+              <div className="bg-gray-800 rounded-lg p-6 mt-6">
+                <button
+                  onClick={() => setShowAddFavorite(!showAddFavorite)}
+                  className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 font-semibold mb-4"
+                >
+                  <span className="text-lg">⭐</span>
+                  {showAddFavorite ? 'Favorit hinzufügen ausblenden' : 'Neuen Favorit hinzufügen'}
+                </button>
+
+                {showAddFavorite && (
+                  <div className="space-y-4">
+                    {/* Search in Standard Articles */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Aus Standardartikeln auswählen
+                      </label>
+                      <input
+                        type="text"
+                        value={newFavorite.searchQuery}
+                        onChange={(e) => {
+                          setNewFavorite(prev => ({ ...prev, searchQuery: e.target.value }));
+                          handleStandardArticleSearch(e.target.value);
+                        }}
+                        placeholder="Artikel suchen..."
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      
+                      {filteredStandardArticles.length > 0 && (
+                        <div className="mt-2 max-h-40 overflow-y-auto bg-gray-700 rounded-lg border border-gray-600">
+                          {filteredStandardArticles.map((article) => (
+                            <button
+                              key={article.id}
+                              onClick={() => addFavoriteFromStandard(article)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-600 flex items-center gap-2"
+                            >
+                              <span className="text-lg">{article.icon}</span>
+                              <span className="text-white">{article.name}</span>
+                              <span className="text-gray-400 text-sm ml-auto">{article.category}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-gray-600 pt-4">
+                      <p className="text-gray-400 text-sm mb-4">Oder neuen Favorit erstellen:</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Name
+                          </label>
+                          <input
+                            type="text"
+                            value={newFavorite.name}
+                            onChange={(e) => setNewFavorite(prev => ({ ...prev, name: e.target.value }))}
+                            placeholder="Artikelname"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Kategorie
+                          </label>
+                          <select
+                            value={newFavorite.category}
+                            onChange={(e) => setNewFavorite(prev => ({ ...prev, category: e.target.value }))}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">Kategorie wählen</option>
+                            {categories.map((cat) => (
+                              <option key={cat.uuid} value={cat.name}>
+                                {cat.icon} {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Icon
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white hover:bg-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent flex items-center gap-2"
+                          >
+                            <span className="text-lg">{newFavorite.icon || '🔍'}</span>
+                            Icon wählen
+                          </button>
+                        </div>
+                        
+                        {showEmojiPicker && (
+                          <div className="mt-2">
+                            <EmojiPicker
+                              onEmojiClick={(emojiData) => {
+                                setNewFavorite(prev => ({ ...prev, icon: emojiData.emoji }));
+                                setShowEmojiPicker(false);
+                              }}
+                              theme="dark"
+                              searchDisabled={false}
+                              skinTonesDisabled={true}
+                              width="100%"
+                              height={400}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex gap-3 mt-6">
+                        <button
+                          onClick={addFavorite}
+                          disabled={!newFavorite.name.trim() || !newFavorite.category}
+                          className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          <span>⭐</span>
+                          Favorit hinzufügen
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowAddFavorite(false);
+                            setNewFavorite({ name: '', icon: '', category: '', searchQuery: '' });
+                            setFilteredStandardArticles([]);
+                          }}
+                          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500"
+                        >
+                          Abbrechen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
