@@ -37,7 +37,7 @@ export default function ListManager({ onSelectList, currentList }) {
     if (!newListName.trim()) return;
 
     try {
-      const newList = await api.createList(newListName, token);
+      const newList = await api.createList(newListName, newListIcon, token);
       setLists(prev => [newList, ...prev]);
       setNewListName('');
       setNewListIcon('🛒');

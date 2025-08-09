@@ -102,11 +102,11 @@ export async function fetchLists(token) {
   return await response.json();
 }
 
-export async function createList(name, token) {
+export async function createList(name, icon, token) {
   const response = await apiCall('/lists', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name, icon })
   });
   
   if (!response.ok) {
