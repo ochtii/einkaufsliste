@@ -72,9 +72,6 @@ pm2 start ecosystem.config.js --only einkaufsliste-frontend
 pm2 start ecosystem.config.js --only einkaufsliste-api
 pm2 start ecosystem.config.js --only eastereggs-api
 
-# Check service status
-print_info "Checking service status..."
-pm2 status
 
 # Show detailed service information
 print_info "Detailed service information:"
@@ -100,18 +97,18 @@ else
     curl -s http://localhost:4000/api/health || echo "Connection failed"
 fi
 
-# Check API  
-print_info "Testing API at http://localhost:5000/..."
+# Check Admin API
+print_info "Testing Admin API at http://localhost:5000/..."
 if curl -f -s http://localhost:5000/ >/dev/null 2>&1; then
-    print_success "API is healthy"
+    print_success "Admin API is healthy"
     api_healthy=true
 else
-    print_warning "API health check failed" 
-    print_info "API debug info:"
+    print_warning "Admin API health check failed"
+    print_info "Admin API debug info:"
     curl -s http://localhost:5000/ || echo "Connection failed"
-    print_info "API service status:"
+    print_info "Admin API service status:"
     pm2 describe einkaufsliste-api | grep -E "(status|cpu|memory|restart|error)"
-    print_info "API logs (last 10 lines):"
+    print_info "Admin API logs (last 10 lines):"
     pm2 logs einkaufsliste-api --lines 10 --nostream 2>/dev/null || echo "No logs available"
     api_healthy=false
 fi
