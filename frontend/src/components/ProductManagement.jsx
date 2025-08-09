@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 import * as api from '../utils/api';
+import easterEggSystem from '../utils/easterEggs';
 
 const ProductManagement = ({ onClose }) => {
   // Helper function for API requests
@@ -144,6 +145,11 @@ const ProductManagement = ({ onClose }) => {
     
     if (!newArticle.name.trim() || !newArticle.category) return;
 
+    // Check for Easter Eggs before adding
+    const icon = newArticle.icon || '📦';
+    const category = newArticle.category;
+    easterEggSystem.checkStarsAndSweets(icon, category);
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/standard-articles', {
@@ -155,7 +161,7 @@ const ProductManagement = ({ onClose }) => {
         body: JSON.stringify({
           name: newArticle.name.trim(),
           category: newArticle.category,
-          icon: newArticle.icon || '📦'
+          icon: icon
         })
       });
 
@@ -196,6 +202,9 @@ const ProductManagement = ({ onClose }) => {
         category: newFavorite.category || standardArticle.category
       };
       
+      // Check for Easter Eggs before adding
+      easterEggSystem.checkStarsAndSweets(newFav.icon, newFav.category);
+      
       await apiRequest('api/articles', {
         method: 'POST',
         body: JSON.stringify({
@@ -218,11 +227,17 @@ const ProductManagement = ({ onClose }) => {
   const addFavorite = async () => {
     if (!newFavorite.name.trim() || !newFavorite.category) return;
     
+    // Check for Easter Eggs before adding
+    const icon = newFavorite.icon || '📦';
+    const category = newFavorite.category;
+    easterEggSystem.checkStarsAndSweets(icon, category);
+    
     try {
       await apiRequest('api/articles', {
         method: 'POST',
         body: JSON.stringify({
           ...newFavorite,
+          icon: icon,
           type: 'favorite'
         })
       });

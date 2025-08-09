@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Easter Egg styles */
+@import './styles/easterEggs.css';
+
 @layer base {
   body {
     @apply bg-gray-950 text-gray-100 font-sans antialiased;

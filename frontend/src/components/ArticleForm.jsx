@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 import ArticleBrowser from './ArticleBrowser';
 import * as api from '../utils/api';
+import easterEggSystem from '../utils/easterEggs';
 
 // Fixed duplicate import issue - Clean version
 export default function ArticleForm({ onAdded, currentList, token }) {
@@ -101,6 +102,10 @@ export default function ArticleForm({ onAdded, currentList, token }) {
       const articleIcon = null; // Let backend handle icon selection
       const data = { name: name.trim(), category, icon: articleIcon, comment: comment.trim() };
       
+      // Check for Easter Eggs before adding (with fallback icon from category)
+      const categoryIcon = categories.find(cat => cat.name === category)?.icon || '📦';
+      easterEggSystem.checkStarsAndSweets(categoryIcon, category);
+      
       await api.createArticle(currentList.uuid, data, token);
       
       onAdded();
@@ -132,6 +137,9 @@ export default function ArticleForm({ onAdded, currentList, token }) {
         icon: article.icon || '📦', 
         comment: article.comment || '' 
       };
+      
+      // Check for Easter Eggs before adding
+      easterEggSystem.checkStarsAndSweets(data.icon, data.category);
       
       await api.createArticle(currentList.uuid, data, token);
       

@@ -1,0 +1,158 @@
+/* Easter Egg Animations */
+.easter-celebration-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.easter-celebration-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: bounceIn 0.6s ease-out;
+}
+
+.easter-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.easter-message {
+  font-size: 1.2rem;
+  color: #f0f0f0;
+  margin-bottom: 1rem;
+}
+
+/* Falling Animation */
+.easter-falling-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.easter-falling-particle {
+  position: absolute;
+  top: -50px;
+  animation: fallDown linear;
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes fallDown {
+  to {
+    transform: translateY(calc(100vh + 50px)) rotate(360deg);
+  }
+}
+
+/* Fireworks */
+.easter-firework {
+  position: absolute;
+  font-size: 3rem;
+  animation: fireworkExplode 2s ease-out;
+  pointer-events: none;
+}
+
+@keyframes fireworkExplode {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Confetti */
+.easter-confetti {
+  position: absolute;
+  top: -10px;
+  font-size: 1.5rem;
+  animation: confettiFall 3s linear;
+  pointer-events: none;
+}
+
+@keyframes confettiFall {
+  to {
+    transform: translateY(calc(100vh + 20px)) rotate(720deg);
+  }
+}
+
+/* Sparkle */
+.easter-sparkle {
+  position: absolute;
+  font-size: 2rem;
+  animation: sparkleGlow 1.5s ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes sparkleGlow {
+  0%, 100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* General Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Special hover effects for potential easter eggs */
+.easter-egg-hint {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.easter-egg-hint:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
