@@ -33,6 +33,11 @@ cd ..
 print_info "Updating Frontend dependencies..."
 cd frontend
 npm install --production
+
+print_info "Building Frontend for production..."
+# Use environment variables instead of cross-env
+NODE_OPTIONS=--no-deprecation DISABLE_ESLINT_PLUGIN=true npm run build
+print_success "Frontend production build completed"
 cd ..
 
 print_info "Updating API dependencies..."

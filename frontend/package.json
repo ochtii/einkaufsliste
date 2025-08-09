@@ -12,7 +12,8 @@
   },
   "scripts": {
     "start": "cross-env HOST=0.0.0.0 DANGEROUSLY_DISABLE_HOST_CHECK=true NODE_OPTIONS=--no-deprecation DISABLE_ESLINT_PLUGIN=true react-scripts start",
-    "build": "cross-env NODE_OPTIONS=--no-deprecation DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "build": "react-scripts build",
+    "build-cross": "cross-env NODE_OPTIONS=--no-deprecation DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
