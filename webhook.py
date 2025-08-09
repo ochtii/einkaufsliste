@@ -16,7 +16,7 @@ from urllib.parse import urlparse, parse_qs
 # Configuration
 WEBHOOK_SECRET = os.environ.get('GITHUB_WEBHOOK_SECRET', 'einkaufsliste-webhook-secret')
 WEBHOOK_PORT = int(os.environ.get('WEBHOOK_PORT', '9000'))
-REPO_PATH = os.environ.get('REPO_PATH', '/var/www/einkaufsliste')
+REPO_PATH = os.environ.get('REPO_PATH', '/home/ubuntu/einkaufsliste')
 DEPLOY_SCRIPT = os.path.join(REPO_PATH, 'deploy.sh')
 
 # Logging setup
@@ -185,6 +185,7 @@ def main():
     # Debug: Check possible repo paths
     possible_paths = [
         REPO_PATH,
+        '/home/ubuntu/einkaufsliste',
         '/home/einkaufsliste',
         '/var/www/einkaufsliste', 
         '/opt/einkaufsliste',

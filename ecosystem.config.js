@@ -80,7 +80,7 @@ module.exports = {
       env: {
         GITHUB_WEBHOOK_SECRET: "einkaufsliste-webhook-secret",
         WEBHOOK_PORT: "9000",
-        REPO_PATH: "/home/einkaufsliste",
+        REPO_PATH: "/home/ubuntu/einkaufsliste",
         PYTHONUNBUFFERED: "1",
       },
       error_file: "./logs/webhook-error.log",
