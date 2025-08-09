@@ -67,10 +67,6 @@ pm2 restart einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api 2>/de
     pm2 start ecosystem.config.js --only einkaufsliste-api
 }
 
-# Wait for services to start properly
-print_info "Waiting for services to initialize..."
-sleep 10
-
 # Check service status
 print_info "Checking service status..."
 pm2 status
