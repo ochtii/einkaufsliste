@@ -35,13 +35,15 @@ class WebhookHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         """Handle GitHub webhook POST requests"""
         try:
-            # Validate GitHub webhook
-            if not self._validate_github_webhook():
+            # Read payload once
+            content_length = int(self.headers.get('Content-Length', 0))
+            payload = self.rfile.read(content_length)
+            
+            # Validate GitHub webhook signature
+            if not self._validate_github_webhook(payload):
                 return
             
             # Parse payload
-            content_length = int(self.headers.get('Content-Length', 0))
-            payload = self.rfile.read(content_length)
             data = json.loads(payload.decode('utf-8'))
             
             # Check if it's a push to 'live' branch
@@ -64,16 +66,13 @@ class WebhookHandler(BaseHTTPRequestHandler):
         else:
             self._send_response(404, {"status": "not_found"})
     
-    def _validate_github_webhook(self):
+    def _validate_github_webhook(self, payload):
         """Validate GitHub webhook signature"""
         signature = self.headers.get('X-Hub-Signature-256')
         if not signature:
             logger.warning("Missing GitHub webhook signature")
             self._send_response(401, {"status": "unauthorized", "message": "Missing signature"})
             return False
-        
-        content_length = int(self.headers.get('Content-Length', 0))
-        payload = self.rfile.read(content_length)
         
         # Verify signature
         mac = hmac.new(
@@ -88,8 +87,6 @@ class WebhookHandler(BaseHTTPRequestHandler):
             self._send_response(401, {"status": "unauthorized", "message": "Invalid signature"})
             return False
         
-        # Reset file pointer for later reading
-        self.rfile = type(self.rfile)(payload)
         return True
     
     def _should_deploy(self, data):
