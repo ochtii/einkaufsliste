@@ -6,7 +6,15 @@ echo "🚀 Deploying Einkaufsliste to production..."
 # Set error handling
 set -e
 
-# Function to print colored output
+# Functprint_info "📂 Modified files in this deployment:"
+git diff --stat HEAD~1 HEAD | head -n -1 | while IFS= read -r line; do
+    print_info "   📄 $line"
+done
+print_info ""
+print_info "📊 Total changes:"
+git diff --stat HEAD~1 HEAD | tail -n 1 | while IFS= read -r line; do
+    print_info "   $line"
+doneed output
 print_success() { echo -e "\033[32m✅ $1\033[0m"; }
 print_error() { echo -e "\033[31m❌ $1\033[0m"; }
 print_warning() { echo -e "\033[33m⚠️  $1\033[0m"; }
@@ -134,13 +142,21 @@ print_info "📋 Recent changes (last commit):"
 git log --name-status -1 --pretty=format:"   Commit: %h - %s"
 echo ""
 print_info "📂 Modified files in this deployment:"
-git diff --name-status HEAD~1 HEAD | while read status file; do
-    case $status in
-        A) print_info "   ✅ Added: $file" ;;
-        M) print_info "   🔄 Modified: $file" ;;
-        D) print_info "   ❌ Deleted: $file" ;;
-        R*) print_info "   📝 Renamed: $file" ;;
-        *) print_info "   📄 Changed: $file" ;;
-    esac
+git diff --stat HEAD~1 HEAD | head -n -1 | while read line; do
+    if [[ $line =~ ^[[:space:]]*(.+)\|[[:space:]]*([0-9]+)[[:space:]]*(\+*)(\-*) ]]; then
+        file="${BASH_REMATCH[1]// /}"
+        changes="${BASH_REMATCH[2]}"
+        additions="${BASH_REMATCH[3]}"
+        deletions="${BASH_REMATCH[4]}"
+        
+        # Determine file status
+        if git diff --name-status HEAD~1 HEAD | grep -q "^A.*$file"; then
+            print_info "   ✅ Added: $file ($changes lines) $additions"
+        elif git diff --name-status HEAD~1 HEAD | grep -q "^D.*$file"; then
+            print_info "   ❌ Deleted: $file ($changes lines) $deletions"
+        else
+            print_info "   � Modified: $file ($changes changes) $additions$deletions"
+        fi
+    fi
 done
 print_info "═══════════════════════════════════════"
