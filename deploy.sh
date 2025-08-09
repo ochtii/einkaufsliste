@@ -70,6 +70,12 @@ pm2 restart einkaufsliste-backend einkaufsliste-frontend einkaufsliste-api 2>/de
 print_info "Checking service status..."
 pm2 status
 
+# Show detailed service information
+print_info "Detailed service information:"
+pm2 describe einkaufsliste-backend | head -20
+pm2 describe einkaufsliste-frontend | head -20  
+pm2 describe einkaufsliste-api | head -20
+
 # Give services time to fully start
 print_info "Allowing services to initialize..."
 sleep 3
@@ -96,6 +102,10 @@ else
     print_warning "API health check failed" 
     print_info "API debug info:"
     curl -s http://localhost:5000/ || echo "Connection failed"
+    print_info "API service status:"
+    pm2 describe einkaufsliste-api | grep -E "(status|cpu|memory|restart|error)"
+    print_info "API logs (last 10 lines):"
+    pm2 logs einkaufsliste-api --lines 10 --nostream 2>/dev/null || echo "No logs available"
     api_healthy=false
 fi
 
