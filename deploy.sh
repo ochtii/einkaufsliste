@@ -125,3 +125,22 @@ print_info "🔄 Restart services with: pm2 restart ecosystem.config.js"
 
 print_info "Final status:"
 pm2 status
+
+# Show updated files summary
+print_info "═══════════════════════════════════════"
+print_info "📁 UPDATED FILES SUMMARY:"
+print_info "═══════════════════════════════════════"
+print_info "📋 Recent changes (last commit):"
+git log --name-status -1 --pretty=format:"   Commit: %h - %s"
+echo ""
+print_info "📂 Modified files in this deployment:"
+git diff --name-status HEAD~1 HEAD | while read status file; do
+    case $status in
+        A) print_info "   ✅ Added: $file" ;;
+        M) print_info "   🔄 Modified: $file" ;;
+        D) print_info "   ❌ Deleted: $file" ;;
+        R*) print_info "   📝 Renamed: $file" ;;
+        *) print_info "   📄 Changed: $file" ;;
+    esac
+done
+print_info "═══════════════════════════════════════"
