@@ -28,13 +28,6 @@ git pull origin live
 print_info "Updating Backend dependencies..."
 cd backend
 npm install --production
-
-# Install cross-env globally if not present (needed for npm scripts)
-if ! command -v cross-env &> /dev/null; then
-    print_info "Installing cross-env globally..."
-    npm install -g cross-env
-fi
-
 cd ..
 
 print_info "Updating Frontend dependencies..."
