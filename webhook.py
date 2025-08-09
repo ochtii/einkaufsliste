@@ -16,7 +16,7 @@ from urllib.parse import urlparse, parse_qs
 # Configuration
 WEBHOOK_SECRET = os.environ.get('GITHUB_WEBHOOK_SECRET', 'einkaufsliste-webhook-secret')
 WEBHOOK_PORT = int(os.environ.get('WEBHOOK_PORT', '9000'))
-REPO_PATH = os.environ.get('REPO_PATH', '/home/einkaufsliste')
+REPO_PATH = os.environ.get('REPO_PATH', '/var/www/einkaufsliste')
 DEPLOY_SCRIPT = os.path.join(REPO_PATH, 'deploy.sh')
 
 # Logging setup
@@ -105,7 +105,15 @@ class WebhookHandler(BaseHTTPRequestHandler):
     def _trigger_deployment(self, data):
         """Execute deployment script"""
         try:
+            # Check if repo path exists and is accessible
+            if not os.path.exists(REPO_PATH):
+                raise Exception(f"Repository path does not exist: {REPO_PATH}")
+            
+            if not os.access(REPO_PATH, os.R_OK | os.W_OK):
+                raise Exception(f"No read/write permissions for: {REPO_PATH}")
+            
             # Change to repo directory
+            logger.info(f"Changing to directory: {REPO_PATH}")
             os.chdir(REPO_PATH)
             
             # Pull latest changes
@@ -150,7 +158,25 @@ class WebhookHandler(BaseHTTPRequestHandler):
 def main():
     """Start webhook server"""
     logger.info(f"Starting Einkaufsliste webhook server on port {WEBHOOK_PORT}")
-    logger.info(f"Repository path: {REPO_PATH}")
+    
+    # Debug: Check possible repo paths
+    possible_paths = [
+        REPO_PATH,
+        '/home/einkaufsliste',
+        '/var/www/einkaufsliste', 
+        '/opt/einkaufsliste',
+        '/srv/einkaufsliste',
+        os.path.expanduser('~/einkaufsliste')
+    ]
+    
+    logger.info("Checking possible repository paths:")
+    for path in possible_paths:
+        exists = os.path.exists(path)
+        readable = os.access(path, os.R_OK) if exists else False
+        writable = os.access(path, os.W_OK) if exists else False
+        logger.info(f"  {path}: exists={exists}, readable={readable}, writable={writable}")
+    
+    logger.info(f"Using repository path: {REPO_PATH}")
     logger.info(f"Deploy script: {DEPLOY_SCRIPT}")
     
     server = HTTPServer(('0.0.0.0', WEBHOOK_PORT), WebhookHandler)
