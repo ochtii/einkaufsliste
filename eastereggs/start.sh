@@ -7,4 +7,4 @@ echo "Starting Easter Egg API on port 8888..."
 pip install -r requirements.txt
 
 # Run the API
-python app.py
+py app.py
